@@ -25,6 +25,7 @@ public class Nikola extends Entity {
 	private float period = 1 / 5f;
 	private float jumpPeriod = 1 / 1.9f;
 	private boolean jumpAnimationing = false;
+	private float gameSpeed = 1;
 
 	public Nikola(float x, float y, float health, AssetManager assetManager) {
 		super(x, y, health, assetManager);
@@ -44,8 +45,13 @@ public class Nikola extends Entity {
 		sprite.setX(x);
 		sprite.setY(y);
 	}
+	
+	public void updateGameSpeed(float gameSpeed){
+		this.gameSpeed = gameSpeed;
+	}
 
-	public void move() {
+	/*public void move() {
+		System.out.println(y+", "+speed);
 		// TODO Set jumping so that when it is half over the cactus make the jump go down again
 		// TODO Or set jumping distance relative to the speed (preferred)
 		if ((!touched) && (!jumping) & (!falling)) {
@@ -54,13 +60,14 @@ public class Nikola extends Entity {
 				jumpAnimationing = true;
 				touched = true;
 				jumping = true;
-				speed = 4f; // Mess with this // Was 4
+				speed = 4f/gameSpeed+0.5f; // Mess with this // Was 4 // Down part
+				System.out.println(speed + " : "+gameSpeed);
 			}
 		}
 		if (touched && jumping) {
 			//sprite.setTexture(texture);
 			//sprite.setTexture(animatedJumpTextures[0].getTexture());
-			speed *= dy;
+			speed *= dy*(1+gameSpeed/100); // Uppy part
 			y += speed;
 			if (speed <= 0.25f) { // Mess with this // Was 0.9 //TODO MAYBE 0.5
 				falling = true;
@@ -70,7 +77,7 @@ public class Nikola extends Entity {
 			}
 		}
 		if (falling) {
-			speed *= 1.15f; // Mess with this
+			speed *= 1.15f; // Mess with this // Down speed
 			if (y - speed < groundLevel.y)
 				y = groundLevel.y;
 			else
@@ -96,6 +103,27 @@ public class Nikola extends Entity {
 		bounds[1].x = x + 0;
 		bounds[1].y = y + 6;
 		//System.out.println(speed);
+	}*/
+	
+	public void move(){
+		y += speed*Gdx.graphics.getDeltaTime()*(25+gameSpeed/10f); // Determines jump duration
+		speed -= dy*Gdx.graphics.getDeltaTime()*25;//*(25+gameSpeed/10f); // Determines jump duration ? Kinda?
+		System.out.println("Speed: "+speed+" gameSpeed: "+gameSpeed);
+		
+		if(y <= groundLevel.y){
+			jumping = false;
+			y = groundLevel.y;
+			speed = 0;
+		}
+		if(!jumping){
+			if(Gdx.input.isTouched()){
+				speed = 6f+gameSpeed; // Determines jump height 
+				jumping = true;
+			}
+		}
+
+		sprite.setX(x);
+		sprite.setY(y);
 	}
 
 	public void render(SpriteBatch batch) {

@@ -310,16 +310,18 @@ public class GameScreen implements Screen {
 				clouds[0].setShouldUpdate(true);
 				clouds[1].setShouldUpdate(true);
 				nikola.setHealth(100);
+				nikola.updateGameSpeed(1);
 				restarting = false;
 				running = true;
 			}
 	}
 
 	public void updateSpeed() {
-		if (cacti[0].getSpeed() <= 2.2f)
+		//if (cacti[0].getSpeed() <= 2.2f)
 			for (int i = 0; i < cacti.length; i++) {
 				cacti[i].increaseSpeedBy(0.0005f);
 			}
+		nikola.updateGameSpeed(cacti[0].getSpeed());
 	}
 
 	public void updateScore() {
