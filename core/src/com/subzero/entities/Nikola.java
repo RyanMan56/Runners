@@ -12,16 +12,12 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 public class Nikola extends Entity {
-	private boolean touched = false;
 	private boolean jumping = false;
-	private boolean falling = false;
-	private boolean startedFalling = false;
 	private Vector2 groundLevel;
 	private float elapsedTime = 0;
-	private float elapsedJumpTime = 0;
 	private TextureRegion textureRegion;
 	private TextureRegion[] animatedTextures, animatedJumpTextures;
-	private Animation animation, jumpAnimation;
+	private Animation animation;
 	private float period = 1 / 5f;
 	private float jumpPeriod = 1 / 1.9f;
 	private boolean jumpAnimationing = false;
@@ -39,7 +35,6 @@ public class Nikola extends Entity {
 		animation.setPlayMode(PlayMode.LOOP);
 		textureRegion = new TextureRegion(assetManager.get("Nikola-j.png", Texture.class));
 		animatedJumpTextures = textureRegion.split(18, 22)[0];
-		jumpAnimation = new Animation(jumpPeriod, animatedJumpTextures);
 		groundLevel = new Vector2(x, y);
 		sprite = new Sprite(texture, 18, 22);
 		sprite.setX(x);
@@ -53,7 +48,6 @@ public class Nikola extends Entity {
 	public void move(){
 		y += speed*Gdx.graphics.getDeltaTime()*(17*gameSpeed); // Determines jump height
 		speed -= dy*Gdx.graphics.getDeltaTime()*(25*gameSpeed); // Determines jump duration
-		System.out.println("Speed: "+speed+" gameSpeed: "+gameSpeed);
 		
 		if(y <= groundLevel.y){
 			jumping = false;
@@ -74,19 +68,19 @@ public class Nikola extends Entity {
 		bounds[1].x = x + 0;
 		bounds[1].y = y + 6;
 		
-		// TODO Do jumping animation not as an animation. Set jump frame 0 when speed > 0 and set jump frame 1 when (speed <= 0 AND jumping)
+		if(jumping){
+			if(speed > 0)
+				sprite.setRegion(animatedJumpTextures[0]);
+			if(speed <= 0)
+				sprite.setRegion(animatedJumpTextures[1]);
+		}
 	}
 
 	public void render(SpriteBatch batch) {
 		if (health > 0) {
 			elapsedTime += Gdx.graphics.getDeltaTime();
-			//sprite.setTexture(animation.getKeyFrame(elapsedTime, false).getTexture());
 			if (!jumpAnimationing)
 				sprite.setRegion(animation.getKeyFrame(elapsedTime, false));
-			if (jumpAnimationing) {
-				//elapsedJumpTime += Gdx.graphics.getDeltaTime();
-				//sprite.setRegion(jumpAnimation.getKeyFrame(elapsedJumpTime, false));
-			}
 			move();
 		}
 			sprite.draw(batch);
