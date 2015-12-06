@@ -50,64 +50,9 @@ public class Nikola extends Entity {
 		this.gameSpeed = gameSpeed;
 	}
 
-	/*public void move() {
-		System.out.println(y+", "+speed);
-		// TODO Set jumping so that when it is half over the cactus make the jump go down again
-		// TODO Or set jumping distance relative to the speed (preferred)
-		if ((!touched) && (!jumping) & (!falling)) {
-			if (Gdx.input.isTouched()) {
-				elapsedJumpTime = 0;
-				jumpAnimationing = true;
-				touched = true;
-				jumping = true;
-				speed = 4f/gameSpeed+0.5f; // Mess with this // Was 4 // Down part
-				System.out.println(speed + " : "+gameSpeed);
-			}
-		}
-		if (touched && jumping) {
-			//sprite.setTexture(texture);
-			//sprite.setTexture(animatedJumpTextures[0].getTexture());
-			speed *= dy*(1+gameSpeed/100); // Uppy part
-			y += speed;
-			if (speed <= 0.25f) { // Mess with this // Was 0.9 //TODO MAYBE 0.5
-				falling = true;
-				startedFalling = true;
-				touched = false;
-				jumping = false;
-			}
-		}
-		if (falling) {
-			speed *= 1.15f; // Mess with this // Down speed
-			if (y - speed < groundLevel.y)
-				y = groundLevel.y;
-			else
-				y -= speed;
-			if (startedFalling) {
-				//sprite.setTexture(animatedJumpTextures[1].getTexture());
-				//speed = -2f;
-				startedFalling = false;
-			}
-			if (y <= groundLevel.y) {
-				jumpAnimationing = false;
-				speed = 0;
-				falling = false;
-			}
-		}
-
-		//y += speed;
-		//speed *= dy;
-		sprite.setX(x);
-		sprite.setY(y);
-		bounds[0].x = x + 6;
-		bounds[0].y = y + 0;
-		bounds[1].x = x + 0;
-		bounds[1].y = y + 6;
-		//System.out.println(speed);
-	}*/
-	
 	public void move(){
-		y += speed*Gdx.graphics.getDeltaTime()*(17*gameSpeed);//gameSpeed*10); // Determines jump height
-		speed -= dy*Gdx.graphics.getDeltaTime()*(25*gameSpeed);//gameSpeed;//*(25+gameSpeed/10f); // Determines jump duration
+		y += speed*Gdx.graphics.getDeltaTime()*(17*gameSpeed); // Determines jump height
+		speed -= dy*Gdx.graphics.getDeltaTime()*(25*gameSpeed); // Determines jump duration
 		System.out.println("Speed: "+speed+" gameSpeed: "+gameSpeed);
 		
 		if(y <= groundLevel.y){
@@ -117,7 +62,7 @@ public class Nikola extends Entity {
 		}
 		if(!jumping){
 			if(Gdx.input.isTouched()){
-				speed = 6.7f;//+gameSpeed; // Determines jump height 
+				speed = 6.7f; // Determines initial jump velocity
 				jumping = true;
 			}
 		}
@@ -128,6 +73,8 @@ public class Nikola extends Entity {
 		bounds[0].y = y + 0;
 		bounds[1].x = x + 0;
 		bounds[1].y = y + 6;
+		
+		// TODO Do jumping animation not as an animation. Set jump frame 0 when speed > 0 and set jump frame 1 when (speed <= 0 AND jumping)
 	}
 
 	public void render(SpriteBatch batch) {
@@ -137,8 +84,8 @@ public class Nikola extends Entity {
 			if (!jumpAnimationing)
 				sprite.setRegion(animation.getKeyFrame(elapsedTime, false));
 			if (jumpAnimationing) {
-				elapsedJumpTime += Gdx.graphics.getDeltaTime();
-				sprite.setRegion(jumpAnimation.getKeyFrame(elapsedJumpTime, false));
+				//elapsedJumpTime += Gdx.graphics.getDeltaTime();
+				//sprite.setRegion(jumpAnimation.getKeyFrame(elapsedJumpTime, false));
 			}
 			move();
 		}
