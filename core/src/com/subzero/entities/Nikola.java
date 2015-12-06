@@ -106,8 +106,8 @@ public class Nikola extends Entity {
 	}*/
 	
 	public void move(){
-		y += speed*Gdx.graphics.getDeltaTime()*(25+gameSpeed/10f); // Determines jump duration
-		speed -= dy*Gdx.graphics.getDeltaTime()*25;//*(25+gameSpeed/10f); // Determines jump duration ? Kinda?
+		y += speed*Gdx.graphics.getDeltaTime()*(17*gameSpeed);//gameSpeed*10); // Determines jump height
+		speed -= dy*Gdx.graphics.getDeltaTime()*(25*gameSpeed);//gameSpeed;//*(25+gameSpeed/10f); // Determines jump duration
 		System.out.println("Speed: "+speed+" gameSpeed: "+gameSpeed);
 		
 		if(y <= groundLevel.y){
@@ -117,13 +117,17 @@ public class Nikola extends Entity {
 		}
 		if(!jumping){
 			if(Gdx.input.isTouched()){
-				speed = 6f+gameSpeed; // Determines jump height 
+				speed = 6.7f;//+gameSpeed; // Determines jump height 
 				jumping = true;
 			}
 		}
 
 		sprite.setX(x);
 		sprite.setY(y);
+		bounds[0].x = x + 6;
+		bounds[0].y = y + 0;
+		bounds[1].x = x + 0;
+		bounds[1].y = y + 6;
 	}
 
 	public void render(SpriteBatch batch) {
