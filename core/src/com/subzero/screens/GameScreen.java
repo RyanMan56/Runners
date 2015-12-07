@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -68,6 +69,10 @@ public class GameScreen implements Screen {
 	private Texture medal, scoreTex, hi;
 	private float endScoreOffset, highScoreOffset;
 	private Texture medalHolder, blankMedal, bronzeMedal, silverMedal, goldMedal, platinumMedal;
+	private float startEndSlateY, endEndSlateY;
+	private float endSlateAlpha = 0;
+	private float alphaValue;
+	private boolean restartable = false;
 
 	public GameScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
@@ -107,21 +112,24 @@ public class GameScreen implements Screen {
 		//		font = new BitmapFont(Gdx.files.internal("fipps_game_over.fnt"));
 		font = new BitmapFont(Gdx.files.internal("fipps.fnt"));
 		textStyle.font = font;
-		
+
 		gameOverText = new Label("Game Over", textStyle);
-		gameOverText.setPosition(imageProvider.getScreenWidth()/4.5f, imageProvider.getScreenHeight() / 1.3f);//+7f);
+		gameOverText.setPosition(imageProvider.getScreenWidth() / 4.5f, imageProvider.getScreenHeight() / 1.3f);//+7f);
 		gameOverText.setColor(0.996f, 0.557f, 0.227f, 0);
-		endSlate = new Rectangle(imageProvider.getScreenWidth() / 5, gameOverText.getY() - gameOverText.getHeight()*1.75f, imageProvider.getScreenWidth() / 1.8f, 45);
+		endSlate = new Rectangle(imageProvider.getScreenWidth() / 5, gameOverText.getY() - gameOverText.getHeight() * 1.75f, imageProvider.getScreenWidth() / 1.8f, 45);
+		startEndSlateY = endSlate.y;
+		endSlate.setY(30);
+		endEndSlateY = endSlate.y;
 		endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
 		restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
 		gameOverScore = new Label("", textStyle);
-		
+
 		highScore = new Label("0", textStyle);
-		
+
 		medal = assetManager.get("Medal.png", Texture.class);
 		scoreTex = assetManager.get("Score.png", Texture.class);
 		hi = assetManager.get("High.png", Texture.class);
-		
+
 		blankMedal = assetManager.get("BlankMedal.png", Texture.class);
 		bronzeMedal = assetManager.get("BronzeMedal.png", Texture.class);
 		silverMedal = assetManager.get("SilverMedal.png", Texture.class);
@@ -174,6 +182,7 @@ public class GameScreen implements Screen {
 	}
 
 	public void update() {
+		System.out.println(restartable);
 		updateScore();
 		updateSpeed();
 		drawBackground();
@@ -190,7 +199,7 @@ public class GameScreen implements Screen {
 		if (!running)
 			gameOverShape();
 	}
-	
+
 	public void gameOver() {
 		gameOverText.draw(batch, 1);
 		if (gameOverText.getColor().a < 0.5f) {
@@ -202,21 +211,36 @@ public class GameScreen implements Screen {
 		if (gameOverText.getColor().a < 1) {
 			gameOverText.setColor(gameOverText.getColor().r, gameOverText.getColor().g, gameOverText.getColor().b, gameOverText.getColor().a += 0.05f);
 		}
+		if (endSlate.y < startEndSlateY) {
+			endSlate.y++;
+			endSlateBorder.y++;
+			restartButton.y++;
+			//			gameOverScore.moveBy(0, 1);
+			//			highScore.moveBy(0, 1);
+			endSlateAlpha = endSlate.y / (startEndSlateY);
+			//			System.out.println(endSlateAlpha);
+		}
+		if (endSlateAlpha < 1)
+			restartable = false;
+		else
+			restartable = true;
 	}
 
 	public void gameOverShape() {
+		Gdx.gl.glEnable(GL10.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Filled);
-		shapeRenderer.setColor(Color.BLACK);
+		shapeRenderer.setColor(0, 0, 0, endSlateAlpha);
 		shapeRenderer.rect(endSlateBorder.x, endSlateBorder.y, endSlateBorder.width, endSlateBorder.height);
-		shapeRenderer.setColor(0.886f, 0.8f, 0.592f, 1);
+		shapeRenderer.setColor(0.886f, 0.8f, 0.592f, endSlateAlpha);
 		shapeRenderer.rect(endSlate.x, endSlate.y, endSlate.width, endSlate.height);
 
-		shapeRenderer.setColor(0.827f, 0.616f, 0.376f, 1);
+		shapeRenderer.setColor(0.827f, 0.616f, 0.376f, endSlateAlpha);
 		shapeRenderer.line(endSlate.x + 2, endSlate.y + endSlate.height - 2, endSlate.x + endSlate.width - 2, endSlate.y + endSlate.height - 2);
 		shapeRenderer.line(endSlate.x + 2, endSlate.y + endSlate.height - 2, endSlate.x + 2, endSlate.y + 3);
-		shapeRenderer.line(endSlate.x, endSlate.y+0.5f, endSlate.x+endSlate.width, endSlate.y+0.5f);
-		shapeRenderer.setColor(0.95f, 0.859f, 0.635f, 1);
+		shapeRenderer.line(endSlate.x, endSlate.y + 0.5f, endSlate.x + endSlate.width, endSlate.y + 0.5f);
+		shapeRenderer.setColor(0.95f, 0.859f, 0.635f, endSlateAlpha);
 		shapeRenderer.line(endSlate.x + 2, endSlate.y + 3, endSlate.x + endSlate.width - 2, endSlate.y + 3);
 		shapeRenderer.line(endSlate.x + endSlate.width - 2, endSlate.y + 3, endSlate.x + endSlate.width - 2, endSlate.y + endSlate.height - 2);
 
@@ -231,96 +255,111 @@ public class GameScreen implements Screen {
 		shapeRenderer.setColor(0, 0.686f, 0.278f, 1);
 		shapeRenderer.triangle(restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 1.5f + 2.5f, restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 3 - 2.5f, restartButton.x + restartButton.width / 2 + 5, restartButton.y + restartButton.height / 2);
 		shapeRenderer.end();
-		
+		Gdx.gl.glDisable(GL10.GL_BLEND);
+
 		endScoreOffset = 0;
-		if(cactusScore >= 10)
+		if (cactusScore >= 10)
 			endScoreOffset = 8;
-		if(cactusScore >= 100)
+		if (cactusScore >= 100)
 			endScoreOffset = 16;
-		if(cactusScore >= 1000)
+		if (cactusScore >= 1000)
 			endScoreOffset = 24;
-		if(cactusScore >= 10000)
+		if (cactusScore >= 10000)
 			endScoreOffset = 32;
-		if(cactusScore >= 100000)
+		if (cactusScore >= 100000)
 			endScoreOffset = 40;
-		if(cactusScore >= 1000000)
+		if (cactusScore >= 1000000)
 			endScoreOffset = 48;
-		
-		gameOverScore.setPosition(endSlate.x+endSlate.width-20-endScoreOffset, endSlate.y+endSlate.height-gameOverScore.getHeight()-15);
-		highScore.setPosition(endSlate.x+endSlate.width-20-highScoreOffset, gameOverScore.getY()-30);
-		
+
+		gameOverScore.setPosition(endSlate.x + endSlate.width - 20 - endScoreOffset, endSlate.y + endSlate.height - gameOverScore.getHeight() - 15);
+		gameOverScore.setColor(gameOverScore.getColor().r, gameOverScore.getColor().g, gameOverScore.getColor().b, endSlateAlpha);
+		highScore.setPosition(endSlate.x + endSlate.width - 20 - highScoreOffset, gameOverScore.getY() - 30);
+		highScore.setColor(highScore.getColor().r, highScore.getColor().g, highScore.getColor().b, endSlateAlpha);
+
 		medalHolder = blankMedal;
-		if(cactusScore >= 20)
+		if (cactusScore >= 20)
 			medalHolder = bronzeMedal;
-		if(cactusScore >= 30)
+		if (cactusScore >= 30)
 			medalHolder = silverMedal;
-		if(cactusScore >= 40)
+		if (cactusScore >= 40)
 			medalHolder = goldMedal;
-		if(cactusScore >= 50)
+		if (cactusScore >= 50)
 			medalHolder = platinumMedal;
-		
+
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
+
+		alphaValue = endSlateAlpha;
+		if (endSlateAlpha < 0)
+			alphaValue = 0;
+		if (endSlateAlpha > 1)
+			alphaValue = 1;
+		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, alphaValue);
 		text.setPosition(imageProvider.getScreenWidth() / 2 - scorePadding, imageProvider.getScreenHeight() - 20);
-		batch.draw(medal, endSlate.x+10, endSlate.y+endSlate.height-medal.getHeight()-4);
-		batch.draw(scoreTex, endSlate.x+endSlate.width-10-scoreTex.getWidth(), endSlate.y+endSlate.height-scoreTex.getHeight()-4);
-		gameOverScore.setText(""+(int)cactusScore);
+		batch.draw(medal, endSlate.x + 10, endSlate.y + endSlate.height - medal.getHeight() - 4);
+		batch.draw(scoreTex, endSlate.x + endSlate.width - 10 - scoreTex.getWidth(), endSlate.y + endSlate.height - scoreTex.getHeight() - 4);
+		gameOverScore.setText("" + (int) cactusScore);
 		gameOverScore.draw(batch, 1);
-		batch.draw(hi, endSlate.x+endSlate.width-10-hi.getWidth(), gameOverScore.getY()-12);
+		batch.draw(hi, endSlate.x + endSlate.width - 10 - hi.getWidth(), gameOverScore.getY() - 12);
 		highScore.draw(batch, 1);
-		batch.draw(medalHolder, endSlate.x+9, endSlate.y+7.5f);
+		batch.draw(medalHolder, endSlate.x + 9, endSlate.y + 7.5f);
 		batch.end();
 	}
 
 	public void restart() {
 		if (!restarting)
-			if ((restartButton.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
-				restarting = true;
-				cacti[0] = new Cactus(imageProvider.getScreenWidth(), 12, 100, assetManager);
-				cacti[1] = new Cactus(-20, 12, 100, assetManager);
-				twoSmallCactus = new TwoSmallCactus(-50, 12, 100, assetManager);
-				twoSmallCactus2 = new TwoSmallCactus(-50, 12, 100, assetManager);
-				threeSmallCactus = new ThreeSmallCactus(-50, 12, 100, assetManager);
-				threeSmallCactus2 = new ThreeSmallCactus(-50, 12, 100, assetManager);
-				cactus = new Cactus(-50, 12, 100, assetManager);
-				cactus2 = new Cactus(-50, 12, 100, assetManager);
-				smallCactus = new SmallCactus(-50, 12, 100, assetManager);
-				smallCactus2 = new SmallCactus(-50, 12, 100, assetManager);
-				score = 0;
-				cactus0Passed = false;
-				cactus1Passed = false;
-				cactusScore = -1;
-				gameOverText.setColor(gameOverText.getColor().r, gameOverText.getColor().g, gameOverText.getColor().b, 0);
-				gameOverText.setPosition(imageProvider.getScreenWidth()/4.5f, imageProvider.getScreenHeight() / 1.3f);//+7f);
-//				cacti[0].setX(imageProvider.getScreenWidth());
-//				cacti[1].setX(-20);
-//				score = 0;
-//				cacti[0].setSpeed(1);
-//				cacti[1].setSpeed(1);
-//				cacti[0].setSprite(cactus.getSprite());
-//				cacti[0].setBigCactus(cactus.isBigCactus());
-//				cacti[1].setSprite(cactus.getSprite());
-//				cacti[1].setBigCactus(cactus.isBigCactus());
-				clouds[0].setSpeed(0.25f);
-				clouds[1].setSpeed(0.25f);
-				clouds[0].setX(imageProvider.getScreenWidth());
-				clouds[1].setX(imageProvider.getScreenWidth() * 1.5f);
-//				cacti[0].setShouldUpdate(true);
-//				cacti[1].setShouldUpdate(true);
-				clouds[0].setShouldUpdate(true);
-				clouds[1].setShouldUpdate(true);
-				nikola.setHealth(100);
-				nikola.updateGameSpeed(1);
-				restarting = false;
-				running = true;
-			}
+			if (restartable)
+				if ((restartButton.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
+					restartable = false;
+					restarting = true;
+					cacti[0] = new Cactus(imageProvider.getScreenWidth(), 12, 100, assetManager);
+					cacti[1] = new Cactus(-20, 12, 100, assetManager);
+					twoSmallCactus = new TwoSmallCactus(-50, 12, 100, assetManager);
+					twoSmallCactus2 = new TwoSmallCactus(-50, 12, 100, assetManager);
+					threeSmallCactus = new ThreeSmallCactus(-50, 12, 100, assetManager);
+					threeSmallCactus2 = new ThreeSmallCactus(-50, 12, 100, assetManager);
+					cactus = new Cactus(-50, 12, 100, assetManager);
+					cactus2 = new Cactus(-50, 12, 100, assetManager);
+					smallCactus = new SmallCactus(-50, 12, 100, assetManager);
+					smallCactus2 = new SmallCactus(-50, 12, 100, assetManager);
+					score = 0;
+					cactus0Passed = false;
+					cactus1Passed = false;
+					cactusScore = -1;
+					gameOverText.setColor(gameOverText.getColor().r, gameOverText.getColor().g, gameOverText.getColor().b, 0);
+					gameOverText.setPosition(imageProvider.getScreenWidth() / 4.5f, imageProvider.getScreenHeight() / 1.3f);//+7f);
+					//				cacti[0].setX(imageProvider.getScreenWidth());
+					//				cacti[1].setX(-20);
+					//				score = 0;
+					//				cacti[0].setSpeed(1);
+					//				cacti[1].setSpeed(1);
+					//				cacti[0].setSprite(cactus.getSprite());
+					//				cacti[0].setBigCactus(cactus.isBigCactus());
+					//				cacti[1].setSprite(cactus.getSprite());
+					//				cacti[1].setBigCactus(cactus.isBigCactus());
+					clouds[0].setSpeed(0.25f);
+					clouds[1].setSpeed(0.25f);
+					clouds[0].setX(imageProvider.getScreenWidth());
+					clouds[1].setX(imageProvider.getScreenWidth() * 1.5f);
+					//				cacti[0].setShouldUpdate(true);
+					//				cacti[1].setShouldUpdate(true);
+					clouds[0].setShouldUpdate(true);
+					clouds[1].setShouldUpdate(true);
+					nikola.setHealth(100);
+					nikola.updateGameSpeed(1);
+					endSlate.setY(30);
+					endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
+					restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
+					restarting = false;
+					running = true;
+				}
 	}
 
 	public void updateSpeed() {
 		//if (cacti[0].getSpeed() <= 2.2f)
-			for (int i = 0; i < cacti.length; i++) {
-				cacti[i].increaseSpeedBy(0.0005f);
-			}
+		for (int i = 0; i < cacti.length; i++) {
+			cacti[i].increaseSpeedBy(0.0005f);
+		}
 		nikola.updateGameSpeed(cacti[0].getSpeed());
 	}
 
@@ -395,18 +434,18 @@ public class GameScreen implements Screen {
 
 	public void updateCacti() {
 		int randValue;
-		
-		if(!cactus0Passed)
-			if(cacti[0].getX() + cacti[0].getSprite().getWidth() < nikola.getX()){
+
+		if (!cactus0Passed)
+			if (cacti[0].getX() + cacti[0].getSprite().getWidth() < nikola.getX()) {
 				cactusScore++;
 				cactus0Passed = true;
 			}
-		if(!cactus1Passed)
-			if(cacti[1].getX() + cacti[1].getSprite().getWidth() < nikola.getX()){
+		if (!cactus1Passed)
+			if (cacti[1].getX() + cacti[1].getSprite().getWidth() < nikola.getX()) {
 				cactusScore++;
 				cactus1Passed = true;
 			}
-		
+
 		if (cacti[0].getX() < -(cacti[0].getSprite().getWidth())) {
 			randValue = rand.nextInt(4);
 			if (randValue == 0) {
