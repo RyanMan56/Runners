@@ -35,11 +35,9 @@ import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
 
 public class GameScreen implements Screen {
-	private Runners game;
 	private AssetManager assetManager;
 	private SpriteBatch batch;
 	private OrthographicCamera camera;
-	private Viewport viewport;
 	private ImageProvider imageProvider = new ImageProvider();
 	private Floor floor;
 	private ShapeRenderer shapeRenderer;
@@ -60,9 +58,7 @@ public class GameScreen implements Screen {
 	private BitmapFont font;
 	private Label text, testText, gameOverText, gameOverScore, highScore;
 	private LabelStyle textStyle;
-	private float score = 0;
 	private int cactusScore = -1;
-	private boolean yAdjusted = false;
 	private Rectangle endSlate, endSlateBorder;
 	private Rectangle restartButton;
 	private boolean restarting = false;
@@ -81,10 +77,8 @@ public class GameScreen implements Screen {
 	private int highScoreValue;
 
 	public GameScreen(Runners game, AssetManager assetManager) {
-		this.game = game;
 		this.assetManager = assetManager;
 		camera = new OrthographicCamera();
-		viewport = new FitViewport(imageProvider.getScreenWidth(), imageProvider.getScreenHeight(), camera);
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
@@ -354,7 +348,6 @@ public class GameScreen implements Screen {
 					cactus2 = new Cactus(-50, 12, 100, assetManager);
 					smallCactus = new SmallCactus(-50, 12, 100, assetManager);
 					smallCactus2 = new SmallCactus(-50, 12, 100, assetManager);
-					score = 0;
 					cactus0Passed = false;
 					cactus1Passed = false;
 					cactusScore = -1;
@@ -410,7 +403,6 @@ public class GameScreen implements Screen {
 		if (cactusScore >= 999999)
 			scorePadding = 30;
 		text.setPosition(imageProvider.getScreenWidth() / 2 - scorePadding, imageProvider.getScreenHeight() - 20);
-		score += cacti[0].getSpeed() / 10;
 	}
 
 	// TODO When jumping on three small cactus you go through the third one for some reason...
