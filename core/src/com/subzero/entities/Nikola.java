@@ -2,6 +2,7 @@ package com.subzero.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
@@ -22,6 +23,8 @@ public class Nikola extends Entity {
 	private float jumpPeriod = 1 / 1.9f;
 	private boolean jumpAnimationing = false;
 	private float gameSpeed = 1;
+	private boolean restarting;
+	private float soundVolume;
 
 	public Nikola(float x, float y, float health, AssetManager assetManager) {
 		super(x, y, health, assetManager);
@@ -40,26 +43,35 @@ public class Nikola extends Entity {
 		sprite.setX(x);
 		sprite.setY(y);
 	}
-	
-	public void updateGameSpeed(float gameSpeed){
+
+	public void updateGameSpeed(float gameSpeed) {
 		this.gameSpeed = gameSpeed;
 	}
+	public void updateRestarting(boolean restarting){
+		this.restarting = restarting;
+	}
+	public void setSoundVolume(float soundVolume){
+		this.soundVolume = soundVolume;
+	}
 
-	public void move(){
-		y += speed*Gdx.graphics.getDeltaTime()*(17*gameSpeed); // Determines jump height
-		speed -= dy*Gdx.graphics.getDeltaTime()*(25*gameSpeed); // Determines jump duration
-		
-		if(y <= groundLevel.y){
+	public void move() {
+		y += speed * Gdx.graphics.getDeltaTime() * (17 * gameSpeed); // Determines jump height
+		speed -= dy * Gdx.graphics.getDeltaTime() * (25 * gameSpeed); // Determines jump duration
+
+		if (y <= groundLevel.y) {
 			jumping = false;
 			y = groundLevel.y;
 			speed = 0;
 		}
-		if(!jumping){
-			if(Gdx.input.isTouched()){
-				speed = 6.7f; // Determines initial jump velocity
-				jumping = true;
+		System.out.println(gameSpeed);
+		if (gameSpeed > 1.003)
+			if (!jumping) {
+				if (Gdx.input.isTouched()) {
+					speed = 6.7f; // Determines initial jump velocity
+					assetManager.get("Jump.wav", Sound.class).play(soundVolume);
+					jumping = true;
+				}
 			}
-		}
 
 		sprite.setX(x);
 		sprite.setY(y);
@@ -67,11 +79,11 @@ public class Nikola extends Entity {
 		bounds[0].y = y + 0;
 		bounds[1].x = x + 0;
 		bounds[1].y = y + 6;
-		
-		if(jumping){
-			if(speed > 0)
+
+		if (jumping) {
+			if (speed > 0)
 				sprite.setRegion(animatedJumpTextures[0]);
-			if(speed <= 0)
+			if (speed <= 0)
 				sprite.setRegion(animatedJumpTextures[1]);
 		}
 	}
@@ -83,7 +95,7 @@ public class Nikola extends Entity {
 				sprite.setRegion(animation.getKeyFrame(elapsedTime, false));
 			move();
 		}
-			sprite.draw(batch);
+		sprite.draw(batch);
 	}
 
 }

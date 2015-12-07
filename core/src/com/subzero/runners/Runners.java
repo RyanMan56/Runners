@@ -2,6 +2,7 @@ package com.subzero.runners;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.subzero.screens.GameScreen;
 import com.subzero.screens.MainMenuScreen;
@@ -33,6 +34,10 @@ public class Runners extends Game {
 		assetManager.load("SilverMedal.png", Texture.class);
 		assetManager.load("GoldMedal.png", Texture.class);
 		assetManager.load("PlatinumMedal.png", Texture.class);
+		assetManager.load("Jump.wav", Sound.class);
+		assetManager.load("Hit.wav", Sound.class);
+		assetManager.load("Select.wav", Sound.class);
+		assetManager.load("Point.wav", Sound.class);
 	}
 
 	@Override
@@ -40,6 +45,7 @@ public class Runners extends Game {
 		super.render();
 		if(!loaded){
 			if(assetManager.update()){
+				assetManager.get("Select.wav", Sound.class).play(0);
 				gameScreen = new GameScreen(this, assetManager);
 				setScreen(gameScreen);
 				loaded = true;

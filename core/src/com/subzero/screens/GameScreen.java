@@ -3,8 +3,10 @@ package com.subzero.screens;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.GL20;
@@ -73,6 +75,10 @@ public class GameScreen implements Screen {
 	private float endSlateAlpha = 0;
 	private float alphaValue;
 	private boolean restartable = false;
+	private boolean canPlayHitSound = true;
+	private float soundVolume = 0.5f;
+	private Preferences pref;
+	private int highScoreValue;
 
 	public GameScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
@@ -84,6 +90,7 @@ public class GameScreen implements Screen {
 		shapeRenderer = new ShapeRenderer();
 		floor = new Floor();
 		nikola = new Nikola(20, 12, 100, assetManager);
+		nikola.setSoundVolume(soundVolume);
 		rand = new Random();
 		cacti[0] = new Cactus(imageProvider.getScreenWidth(), 12, 100, assetManager);
 		cacti[1] = new Cactus(-20, 12, 100, assetManager);
@@ -112,19 +119,22 @@ public class GameScreen implements Screen {
 		//		font = new BitmapFont(Gdx.files.internal("fipps_game_over.fnt"));
 		font = new BitmapFont(Gdx.files.internal("fipps.fnt"));
 		textStyle.font = font;
+		
+		pref = Gdx.app.getPreferences("com.subzero.runners");
+		highScoreValue = pref.getInteger("score", 0);
 
 		gameOverText = new Label("Game Over", textStyle);
 		gameOverText.setPosition(imageProvider.getScreenWidth() / 4.5f, imageProvider.getScreenHeight() / 1.3f);//+7f);
 		gameOverText.setColor(0.996f, 0.557f, 0.227f, 0);
 		endSlate = new Rectangle(imageProvider.getScreenWidth() / 5, gameOverText.getY() - gameOverText.getHeight() * 1.75f, imageProvider.getScreenWidth() / 1.8f, 45);
 		startEndSlateY = endSlate.y;
-		endSlate.setY(30);
+		endSlate.setY(imageProvider.getScreenHeight() / 5);
 		endEndSlateY = endSlate.y;
 		endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
 		restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
 		gameOverScore = new Label("", textStyle);
 
-		highScore = new Label("0", textStyle);
+		highScore = new Label("highScoreValue", textStyle);
 
 		medal = assetManager.get("Medal.png", Texture.class);
 		scoreTex = assetManager.get("Score.png", Texture.class);
@@ -182,7 +192,6 @@ public class GameScreen implements Screen {
 	}
 
 	public void update() {
-		System.out.println(restartable);
 		updateScore();
 		updateSpeed();
 		drawBackground();
@@ -201,6 +210,12 @@ public class GameScreen implements Screen {
 	}
 
 	public void gameOver() {
+		if(cactusScore > highScoreValue){
+			pref.putInteger("score", cactusScore);
+			highScoreValue = cactusScore;
+			pref.flush();
+		}
+		
 		gameOverText.draw(batch, 1);
 		if (gameOverText.getColor().a < 0.5f) {
 			gameOverText.setPosition(gameOverText.getX(), gameOverText.getY() + 0.5f);
@@ -270,6 +285,20 @@ public class GameScreen implements Screen {
 			endScoreOffset = 40;
 		if (cactusScore >= 1000000)
 			endScoreOffset = 48;
+		
+		highScoreOffset = 0;
+		if (highScoreValue >= 10)
+			highScoreOffset = 8;
+		if (highScoreValue >= 100)
+			highScoreOffset = 16;
+		if (highScoreValue>= 1000)
+			highScoreOffset = 24;
+		if (highScoreValue >= 10000)
+			highScoreOffset = 32;
+		if (highScoreValue >= 100000)
+			highScoreOffset = 40;
+		if (highScoreValue >= 1000000)
+			highScoreOffset = 48;
 
 		gameOverScore.setPosition(endSlate.x + endSlate.width - 20 - endScoreOffset, endSlate.y + endSlate.height - gameOverScore.getHeight() - 15);
 		gameOverScore.setColor(gameOverScore.getColor().r, gameOverScore.getColor().g, gameOverScore.getColor().b, endSlateAlpha);
@@ -286,9 +315,9 @@ public class GameScreen implements Screen {
 		if (cactusScore >= 50)
 			medalHolder = platinumMedal;
 
+		batch.enableBlending();
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
-
 		alphaValue = endSlateAlpha;
 		if (endSlateAlpha < 0)
 			alphaValue = 0;
@@ -301,6 +330,7 @@ public class GameScreen implements Screen {
 		gameOverScore.setText("" + (int) cactusScore);
 		gameOverScore.draw(batch, 1);
 		batch.draw(hi, endSlate.x + endSlate.width - 10 - hi.getWidth(), gameOverScore.getY() - 12);
+		highScore.setText("" + highScoreValue);
 		highScore.draw(batch, 1);
 		batch.draw(medalHolder, endSlate.x + 9, endSlate.y + 7.5f);
 		batch.end();
@@ -310,6 +340,8 @@ public class GameScreen implements Screen {
 		if (!restarting)
 			if (restartable)
 				if ((restartButton.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
+					nikola.updateRestarting(true);
+					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					restartable = false;
 					restarting = true;
 					cacti[0] = new Cactus(imageProvider.getScreenWidth(), 12, 100, assetManager);
@@ -347,9 +379,10 @@ public class GameScreen implements Screen {
 					clouds[1].setShouldUpdate(true);
 					nikola.setHealth(100);
 					nikola.updateGameSpeed(1);
-					endSlate.setY(30);
+					endSlate.setY(endEndSlateY);
 					endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
 					restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
+					canPlayHitSound = true;
 					restarting = false;
 					running = true;
 				}
@@ -398,14 +431,18 @@ public class GameScreen implements Screen {
 	}
 
 	public void checkCollisions() {
-		for (int i = 0; i < cacti.length; i++)
-			if (nikola.getSprite().getBoundingRectangle().overlaps(cacti[i].getSprite().getBoundingRectangle())) {
-				if (doesCollide(nikola, cacti[i])) {
-					cacti[0].setSpeed(0);
-					running = false;
+			for (int i = 0; i < cacti.length; i++)
+				if (nikola.getSprite().getBoundingRectangle().overlaps(cacti[i].getSprite().getBoundingRectangle())) {
+					if (doesCollide(nikola, cacti[i])) {
+						if (canPlayHitSound) {
+							assetManager.get("Hit.wav", Sound.class).play(soundVolume);
+							canPlayHitSound = false;
+						}
+						cacti[0].setSpeed(0);
+						running = false;
 
+					}
 				}
-			}
 		if (!running) {
 			nikola.setHealth(0);
 			for (int i = 0; i < cacti.length; i++)
@@ -438,11 +475,15 @@ public class GameScreen implements Screen {
 		if (!cactus0Passed)
 			if (cacti[0].getX() + cacti[0].getSprite().getWidth() < nikola.getX()) {
 				cactusScore++;
+				if(cactusScore > 0)
+					assetManager.get("Point.wav", Sound.class).play(soundVolume);
 				cactus0Passed = true;
 			}
 		if (!cactus1Passed)
 			if (cacti[1].getX() + cacti[1].getSprite().getWidth() < nikola.getX()) {
 				cactusScore++;
+				if(cactusScore > 0)
+					assetManager.get("Point.wav", Sound.class).play(soundVolume);
 				cactus1Passed = true;
 			}
 
