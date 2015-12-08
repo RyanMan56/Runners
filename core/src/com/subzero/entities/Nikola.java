@@ -63,7 +63,6 @@ public class Nikola extends Entity {
 			y = groundLevel.y;
 			speed = 0;
 		}
-		System.out.println(gameSpeed);
 		if (gameSpeed > 1.003)
 			if (!jumping) {
 				if (Gdx.input.isTouched()) {

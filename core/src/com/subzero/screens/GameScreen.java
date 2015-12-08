@@ -76,7 +76,7 @@ public class GameScreen implements Screen {
 	private Preferences pref;
 	private int highScoreValue;
 
-	public GameScreen(Runners game, AssetManager assetManager) {
+	public GameScreen(AssetManager assetManager) {
 		this.assetManager = assetManager;
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
@@ -186,6 +186,7 @@ public class GameScreen implements Screen {
 	}
 
 	public void update() {
+		System.out.println(cacti[0].getSpeed());
 		updateScore();
 		updateSpeed();
 		drawBackground();
@@ -545,12 +546,6 @@ public class GameScreen implements Screen {
 		floor.render(shapeRenderer);
 		renderDust();
 		drawDust(shapeRenderer);
-		//		shapeRenderer.rect(nikola.getBounds()[0].x, nikola.getBounds()[0].y, nikola.getBounds()[0].width, nikola.getBounds()[0].height);
-		//		shapeRenderer.rect(nikola.getBounds()[1].x, nikola.getBounds()[1].y, nikola.getBounds()[1].width, nikola.getBounds()[1].height);
-		//		for (int i = 0; i < cacti.length; i++)
-		//			for (int j = 0; j < cacti[i].getBounds().length; j++)
-		//				//shapeRenderer.rect(cacti[i].getBounds()[j].x, cacti[i].getBounds()[j].y, cacti[i].getBounds()[j].width, cacti[i].getBounds()[j].height);
-		//				shapeRenderer.rect(cacti[i].getSprite().getBoundingRectangle().x, cacti[i].getSprite().getBoundingRectangle().y, cacti[i].getSprite().getBoundingRectangle().width, cacti[i].getSprite().getBoundingRectangle().height);
 		shapeRenderer.end();
 
 	}
