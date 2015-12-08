@@ -13,7 +13,8 @@ public class Cloud extends Entity {
 		sprite = new Sprite(texture, 20, 11);
 		sprite.setX(x);
 		sprite.setY(y);
-		speed = 0.25f;
+//		speed = 0.25f;
+		speed = 0.1f;
 	}
 
 	public void render(SpriteBatch batch) {

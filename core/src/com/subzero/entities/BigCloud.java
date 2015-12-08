@@ -13,7 +13,7 @@ public class BigCloud extends Entity {
 		sprite = new Sprite(texture, 38, 15);
 		sprite.setX(x);
 		sprite.setY(y);
-		speed = 0.25f;
+		speed = 0.1f;
 	}
 
 	public void render(SpriteBatch batch) {
