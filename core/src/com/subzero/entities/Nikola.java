@@ -23,7 +23,6 @@ public class Nikola extends Entity {
 	private float jumpPeriod = 1 / 1.9f;
 	private boolean jumpAnimationing = false;
 	private float gameSpeed = 1;
-	private boolean restarting;
 	private float soundVolume;
 
 	public Nikola(float x, float y, float health, AssetManager assetManager) {
@@ -46,9 +45,6 @@ public class Nikola extends Entity {
 
 	public void updateGameSpeed(float gameSpeed) {
 		this.gameSpeed = gameSpeed;
-	}
-	public void updateRestarting(boolean restarting){
-		this.restarting = restarting;
 	}
 	public void setSoundVolume(float soundVolume){
 		this.soundVolume = soundVolume;

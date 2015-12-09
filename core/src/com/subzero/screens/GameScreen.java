@@ -33,7 +33,6 @@ import com.subzero.entities.ThreeSmallCactus;
 import com.subzero.entities.TwoSmallCactus;
 import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
-import com.subzero.util.ToScreenPixels;
 
 public class GameScreen implements Screen {
 	private AssetManager assetManager;
@@ -79,12 +78,14 @@ public class GameScreen implements Screen {
 	private Runners game;
 	private Texture restart;
 	private Rectangle restartBounds;
+	private Viewport viewport;
 
 	public GameScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
 		this.assetManager = assetManager;
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
+		viewport = new FitViewport(imageProvider.getScreenWidth(), imageProvider.getScreenHeight(), camera);
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		floor = new Floor();
@@ -147,7 +148,7 @@ public class GameScreen implements Screen {
 		medalHolder = blankMedal;
 		
 		restart = assetManager.get("Restart.png", Texture.class);
-		restartBounds = new Rectangle(ToScreenPixels.toScreenWidthPixels(restartButton.x+4), ToScreenPixels.toScreenHeightPixels(restartButton.y+5), ToScreenPixels.toScreenWidthPixels(restart.getWidth()), ToScreenPixels.toScreenHeightPixels(restart.getHeight()));
+		restartBounds = new Rectangle(restartButton.x, restartButton.y, restart.getWidth(), restart.getHeight());
 
 		createDust();
 	}
@@ -166,11 +167,16 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		//Gdx.gl.glClearColor(0, 0.47f, 0.67f, 1);
-		//Gdx.gl.glClearColor(0.42f, 0.63f, 0.8f, 1);
-		Gdx.gl.glClearColor(0.19f, 0.54f, 0.85f, 1);
+		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
+		
+		shapeRenderer.setProjectionMatrix(camera.combined);
+		shapeRenderer.begin(ShapeType.Filled);
+		shapeRenderer.setColor(0.19f, 0.54f, 0.85f, 1);
+		shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
+		shapeRenderer.end();
+		
 		update();
 
 		batch.setProjectionMatrix(camera.combined);
@@ -194,7 +200,6 @@ public class GameScreen implements Screen {
 	}
 
 	public void update() {
-		System.out.println(cacti[0].getSpeed());
 		updateScore();
 		updateSpeed();
 		drawBackground();
@@ -345,7 +350,6 @@ public class GameScreen implements Screen {
 		if (!restarting)
 			if (restartable)
 				if ((restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
-					nikola.updateRestarting(true);
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					restartable = false;
 					restarting = true;
@@ -386,7 +390,7 @@ public class GameScreen implements Screen {
 					endSlate.setY(endEndSlateY);
 					endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
 					restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
-					restartBounds.y = ToScreenPixels.toScreenHeightPixels(restartButton.y+5);
+					restartBounds.y = restartButton.y;
 					canPlayHitSound = true;
 					restarting = false;
 					running = true;
@@ -582,8 +586,7 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
-
+		viewport.update(width, height);
 	}
 
 	@Override

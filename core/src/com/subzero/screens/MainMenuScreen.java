@@ -2,6 +2,7 @@ package com.subzero.screens;
 
 import java.util.Random;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
@@ -17,12 +18,13 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.subzero.background.Floor;
 import com.subzero.entities.BigCloud;
 import com.subzero.entities.Cloud;
 import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
-import com.subzero.util.ToScreenPixels;
 
 public class MainMenuScreen implements Screen {
 	private AssetManager assetManager;
@@ -54,6 +56,7 @@ public class MainMenuScreen implements Screen {
 	private Rectangle restartBounds;
 	private GameScreen gameScreen;
 	private Runners game;
+	private Viewport viewport;
 
 	public MainMenuScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
@@ -62,19 +65,18 @@ public class MainMenuScreen implements Screen {
 		gameScreen = new GameScreen(game, assetManager);
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
+		viewport = new FitViewport(imageProvider.getScreenWidth(), imageProvider.getScreenHeight(), camera);
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		floor = new Floor();
 		rand = new Random();
-		bigNikolaY = ToScreenPixels.toScreenHeightPixels(-122);
-		bigNikolaYDest = ToScreenPixels.toScreenHeightPixels(-20);
+		bigNikolaY = -122;
+		bigNikolaYDest = -20;
 		restart = assetManager.get("Restart.png", Texture.class);
-		restartX = ToScreenPixels.toScreenWidthPixels(119);
-		restartY = ToScreenPixels.toScreenHeightPixels(40);
-		restartWidth = ToScreenPixels.toScreenWidthPixels(restart.getWidth());
-		restartHeight = ToScreenPixels.toScreenHeightPixels(restart.getHeight());
-//		restartWidth = restartHeight * (50/22f);
-//		restartHeight = restartWidth / (50/22f);
+		restartX = 130;
+		restartY = 40;
+		restartWidth = restart.getWidth();
+		restartHeight = restart.getHeight();
 		restartBounds = new Rectangle(restartX, restartY, restartWidth, restartHeight);
 
 		clouds[0] = new Cloud(imageProvider.getScreenWidth(), imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
@@ -88,16 +90,15 @@ public class MainMenuScreen implements Screen {
 		animation.setPlayMode(PlayMode.LOOP);
 		bigNikola = animation.getKeyFrame(elapsedTime);
 
-//		bigNikolaHeight = imageProvider.getScreenHeight() / (120 / 122f);
-		bigNikolaHeight = ToScreenPixels.toScreenHeightPixels(122);
-//		bigNikolaWidth = bigNikolaHeight * (18 / 22f);
-		bigNikolaWidth = ToScreenPixels.toScreenWidthPixels(100);
-//		bigNikolaHeight = bigNikolaWidth / (18/22f);
+		bigNikolaHeight = 122;
+		bigNikolaWidth = 100;
 
-		titleWidth = ToScreenPixels.toScreenWidthPixels(152);//imageProvider.getScreenWidth() / (180 / 152f);
-		titleHeight = ToScreenPixels.toScreenHeightPixels(18);//titleWidth / (152 / 18f);
+		titleWidth = title.getWidth()*1.2f;//imageProvider.getScreenWidth() / (180 / 152f);
+		titleHeight = title.getHeight()*1.2f;//titleWidth / (152 / 18f);
 
 		createDust();
+		Gdx.app.setLogLevel(Application.LOG_DEBUG);
+		System.out.println("Screen size "+Gdx.graphics.getWidth()+" : "+Gdx.graphics.getHeight());
 	}
 
 	public void createDust() {
@@ -114,12 +115,19 @@ public class MainMenuScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClearColor(0.19f, 0.54f, 0.85f, 1);
+		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
+		
+		shapeRenderer.setProjectionMatrix(camera.combined);
+		shapeRenderer.begin(ShapeType.Filled);
+		shapeRenderer.setColor(0.19f, 0.54f, 0.85f, 1);
+		shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
+		shapeRenderer.end();
+		
 		drawBackground();
 		updateClouds();
-
+		
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		for (Cloud c : clouds)
@@ -174,7 +182,7 @@ public class MainMenuScreen implements Screen {
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, 1);
 		batch.draw(bigNikola, imageProvider.getScreenWidth() / 20, bigNikolaY, bigNikolaWidth, bigNikolaHeight);
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, titleAlpha);
-		batch.draw(title, imageProvider.getScreenWidth() / 15, ToScreenPixels.toScreenHeightPixels(90), titleWidth, titleHeight);
+		batch.draw(title, imageProvider.getScreenWidth() / 15, 90, titleWidth, titleHeight);
 		batch.draw(restart, restartX, restartY, restartWidth, restartHeight);
 		batch.end();
 
@@ -234,8 +242,7 @@ public class MainMenuScreen implements Screen {
 
 	@Override
 	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
-
+		viewport.update(width, height);
 	}
 
 	@Override

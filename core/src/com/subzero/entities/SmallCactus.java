@@ -25,20 +25,4 @@ public class SmallCactus extends Entity {
 
 		// 11 x 14
 	}
-
-	public void render(SpriteBatch batch) {
-		if (shouldUpdate) {
-			x -= speed;
-			sprite.setX(x);
-			//bounds[0].x = x + 
-//			bounds[0].x = x + 0;
-//			bounds[0].y = y + 3;
-//			bounds[1].x = x + 3;
-//			bounds[1].y = y + 0;
-//			bounds[2].x = x + 7;
-//			bounds[2].y = y + 5;
-		}
-		sprite.draw(batch);
-	}
-
 }
