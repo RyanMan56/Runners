@@ -16,10 +16,12 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 import com.subzero.background.Floor;
 import com.subzero.entities.BigCloud;
 import com.subzero.entities.Cloud;
 import com.subzero.images.ImageProvider;
+import com.subzero.runners.Runners;
 import com.subzero.util.ToScreenPixels;
 
 public class MainMenuScreen implements Screen {
@@ -47,10 +49,17 @@ public class MainMenuScreen implements Screen {
 	private float titleAlpha = 0, shapeAlpha = 0;
 	private boolean finished = false;;
 	private boolean touched = false;
+	private Texture restart;
+	private float restartX, restartY, restartWidth, restartHeight;
+	private Rectangle restartBounds;
+	private GameScreen gameScreen;
+	private Runners game;
 
-	public MainMenuScreen(AssetManager assetManager) {
+	public MainMenuScreen(Runners game, AssetManager assetManager) {
+		this.game = game;
 		this.assetManager = assetManager;
 		imageProvider = new ImageProvider();
+		gameScreen = new GameScreen(game, assetManager);
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		batch = new SpriteBatch();
@@ -59,6 +68,14 @@ public class MainMenuScreen implements Screen {
 		rand = new Random();
 		bigNikolaY = ToScreenPixels.toScreenHeightPixels(-122);
 		bigNikolaYDest = ToScreenPixels.toScreenHeightPixels(-20);
+		restart = assetManager.get("Restart.png", Texture.class);
+		restartX = ToScreenPixels.toScreenWidthPixels(119);
+		restartY = ToScreenPixels.toScreenHeightPixels(40);
+		restartWidth = ToScreenPixels.toScreenWidthPixels(restart.getWidth());
+		restartHeight = ToScreenPixels.toScreenHeightPixels(restart.getHeight());
+//		restartWidth = restartHeight * (50/22f);
+//		restartHeight = restartWidth / (50/22f);
+		restartBounds = new Rectangle(restartX, restartY, restartWidth, restartHeight);
 
 		clouds[0] = new Cloud(imageProvider.getScreenWidth(), imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
 		clouds[1] = new Cloud(imageProvider.getScreenWidth() * 1.5f, imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
@@ -70,12 +87,15 @@ public class MainMenuScreen implements Screen {
 		animation = new Animation(period, animatedTextures);
 		animation.setPlayMode(PlayMode.LOOP);
 		bigNikola = animation.getKeyFrame(elapsedTime);
-		
-		bigNikolaHeight = imageProvider.getScreenHeight()/(120/122f);
-		bigNikolaWidth = bigNikolaHeight * (18/22f);
-		
-		titleWidth = imageProvider.getScreenWidth()/(180/152f);
-		titleHeight = titleWidth / (152/18f);
+
+//		bigNikolaHeight = imageProvider.getScreenHeight() / (120 / 122f);
+		bigNikolaHeight = ToScreenPixels.toScreenHeightPixels(122);
+//		bigNikolaWidth = bigNikolaHeight * (18 / 22f);
+		bigNikolaWidth = ToScreenPixels.toScreenWidthPixels(100);
+//		bigNikolaHeight = bigNikolaWidth / (18/22f);
+
+		titleWidth = ToScreenPixels.toScreenWidthPixels(152);//imageProvider.getScreenWidth() / (180 / 152f);
+		titleHeight = ToScreenPixels.toScreenHeightPixels(18);//titleWidth / (152 / 18f);
 
 		createDust();
 	}
@@ -106,7 +126,7 @@ public class MainMenuScreen implements Screen {
 			c.render(batch);
 
 		arrived = true;
-		if(touched){
+		if (touched) {
 			if (shapeAlpha < 1)
 				shapeAlpha += 0.2f;
 			if (shapeAlpha > 1)
@@ -141,19 +161,22 @@ public class MainMenuScreen implements Screen {
 				touched = true;
 			}
 		}
-		if(finished){
-			if(shapeAlpha > 0)
+		if (finished) {
+			if (Gdx.input.isTouched())
+				if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+					game.setScreen(gameScreen);
+				}
+			if (shapeAlpha > 0)
 				shapeAlpha -= 0.2f;
-			if(shapeAlpha < 0)
+			if (shapeAlpha < 0)
 				shapeAlpha = 0;
 		}
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, 1);
-		
-		batch.draw(bigNikola, imageProvider.getScreenWidth()/20, bigNikolaY, bigNikolaWidth, bigNikolaHeight);
+		batch.draw(bigNikola, imageProvider.getScreenWidth() / 20, bigNikolaY, bigNikolaWidth, bigNikolaHeight);
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, titleAlpha);
-		batch.draw(title, imageProvider.getScreenWidth()/15, 75*imageProvider.getScreenHeight()/120f, titleWidth, titleHeight);
+		batch.draw(title, imageProvider.getScreenWidth() / 15, ToScreenPixels.toScreenHeightPixels(90), titleWidth, titleHeight);
+		batch.draw(restart, restartX, restartY, restartWidth, restartHeight);
 		batch.end();
-		System.out.println(imageProvider.getScreenWidth()+" : "+imageProvider.getScreenHeight());
 
 		Gdx.gl.glEnable(GL10.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);

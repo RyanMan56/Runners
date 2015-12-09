@@ -8,7 +8,9 @@ public class ImageProvider {
 	//FIX THIS BECAUSE NIKOLA'S TOO WIDE
 	
 	private float SCREEN_WIDTH = Gdx.graphics.getWidth()*0.1875f;
-	private float SCREEN_HEIGHT = Gdx.graphics.getHeight()*0.1875f;
+	//private float SCREEN_HEIGHT = Gdx.graphics.getHeight()*0.1875f;
+	private float SCREEN_HEIGHT = SCREEN_WIDTH / (Gdx.graphics.getWidth()/Gdx.graphics.getHeight());
+	// TODO This
 	
 	public float getScreenWidth(){
 		return SCREEN_WIDTH;

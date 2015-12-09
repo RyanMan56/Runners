@@ -33,6 +33,7 @@ import com.subzero.entities.ThreeSmallCactus;
 import com.subzero.entities.TwoSmallCactus;
 import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
+import com.subzero.util.ToScreenPixels;
 
 public class GameScreen implements Screen {
 	private AssetManager assetManager;
@@ -75,8 +76,12 @@ public class GameScreen implements Screen {
 	private float soundVolume = 0.5f;
 	private Preferences pref;
 	private int highScoreValue;
+	private Runners game;
+	private Texture restart;
+	private Rectangle restartBounds;
 
-	public GameScreen(AssetManager assetManager) {
+	public GameScreen(Runners game, AssetManager assetManager) {
+		this.game = game;
 		this.assetManager = assetManager;
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
@@ -127,7 +132,7 @@ public class GameScreen implements Screen {
 		endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
 		restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
 		gameOverScore = new Label("", textStyle);
-
+		
 		highScore = new Label("highScoreValue", textStyle);
 
 		medal = assetManager.get("Medal.png", Texture.class);
@@ -140,6 +145,9 @@ public class GameScreen implements Screen {
 		goldMedal = assetManager.get("GoldMedal.png", Texture.class);
 		platinumMedal = assetManager.get("PlatinumMedal.png", Texture.class);
 		medalHolder = blankMedal;
+		
+		restart = assetManager.get("Restart.png", Texture.class);
+		restartBounds = new Rectangle(ToScreenPixels.toScreenWidthPixels(restartButton.x+4), ToScreenPixels.toScreenHeightPixels(restartButton.y+5), ToScreenPixels.toScreenWidthPixels(restart.getWidth()), ToScreenPixels.toScreenHeightPixels(restart.getHeight()));
 
 		createDust();
 	}
@@ -225,6 +233,7 @@ public class GameScreen implements Screen {
 			endSlate.y++;
 			endSlateBorder.y++;
 			restartButton.y++;
+			restartBounds.y++;
 			//			gameOverScore.moveBy(0, 1);
 			//			highScore.moveBy(0, 1);
 			endSlateAlpha = endSlate.y / (startEndSlateY);
@@ -254,16 +263,16 @@ public class GameScreen implements Screen {
 		shapeRenderer.line(endSlate.x + 2, endSlate.y + 3, endSlate.x + endSlate.width - 2, endSlate.y + 3);
 		shapeRenderer.line(endSlate.x + endSlate.width - 2, endSlate.y + 3, endSlate.x + endSlate.width - 2, endSlate.y + endSlate.height - 2);
 
-		shapeRenderer.setColor(Color.BLACK);
-		shapeRenderer.rect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
-		shapeRenderer.setColor(Color.WHITE);
-		shapeRenderer.rect(restartButton.x + 1, restartButton.y + 1, restartButton.width - 2, restartButton.height - 2);
-		shapeRenderer.setColor(0.929f, 0.929f, 0.929f, 1);
-		shapeRenderer.rect(restartButton.x + 1, restartButton.y + 1, restartButton.width - 2, restartButton.height / 2 - 1);
-		shapeRenderer.setColor(Color.BLACK);
-		shapeRenderer.triangle(restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 1.5f + 2.5f - 0.5f, restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 3 - 2.5f - 0.5f, restartButton.x + restartButton.width / 2 + 5, restartButton.y + restartButton.height / 2 - 0.5f);
-		shapeRenderer.setColor(0, 0.686f, 0.278f, 1);
-		shapeRenderer.triangle(restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 1.5f + 2.5f, restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 3 - 2.5f, restartButton.x + restartButton.width / 2 + 5, restartButton.y + restartButton.height / 2);
+//		shapeRenderer.setColor(Color.BLACK);
+//		shapeRenderer.rect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
+//		shapeRenderer.setColor(Color.WHITE);
+//		shapeRenderer.rect(restartButton.x + 1, restartButton.y + 1, restartButton.width - 2, restartButton.height - 2);
+//		shapeRenderer.setColor(0.929f, 0.929f, 0.929f, 1);
+//		shapeRenderer.rect(restartButton.x + 1, restartButton.y + 1, restartButton.width - 2, restartButton.height / 2 - 1);
+//		shapeRenderer.setColor(Color.BLACK);
+//		shapeRenderer.triangle(restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 1.5f + 2.5f - 0.5f, restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 3 - 2.5f - 0.5f, restartButton.x + restartButton.width / 2 + 5, restartButton.y + restartButton.height / 2 - 0.5f);
+//		shapeRenderer.setColor(0, 0.686f, 0.278f, 1);
+//		shapeRenderer.triangle(restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 1.5f + 2.5f, restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 3 - 2.5f, restartButton.x + restartButton.width / 2 + 5, restartButton.y + restartButton.height / 2);
 		shapeRenderer.end();
 		Gdx.gl.glDisable(GL10.GL_BLEND);
 
@@ -328,13 +337,14 @@ public class GameScreen implements Screen {
 		highScore.setText("" + highScoreValue);
 		highScore.draw(batch, 1);
 		batch.draw(medalHolder, endSlate.x + 9, endSlate.y + 7.5f);
+		batch.draw(restart, restartBounds.x, restartBounds.y, restartBounds.width, restartBounds.height);
 		batch.end();
 	}
 
 	public void restart() {
 		if (!restarting)
 			if (restartable)
-				if ((restartButton.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
+				if ((restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
 					nikola.updateRestarting(true);
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					restartable = false;
@@ -376,6 +386,7 @@ public class GameScreen implements Screen {
 					endSlate.setY(endEndSlateY);
 					endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
 					restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
+					restartBounds.y = ToScreenPixels.toScreenHeightPixels(restartButton.y+5);
 					canPlayHitSound = true;
 					restarting = false;
 					running = true;
