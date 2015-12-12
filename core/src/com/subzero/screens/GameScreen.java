@@ -76,9 +76,10 @@ public class GameScreen implements Screen {
 	private Preferences pref;
 	private int highScoreValue;
 	private Runners game;
-	private Texture restart;
-	private Rectangle restartBounds;
+	private Texture restart, pause;
+	private Rectangle restartBounds, pauseBounds, unpauseBounds;
 	private Viewport viewport;
+	private boolean paused = false;
 
 	public GameScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
@@ -111,15 +112,11 @@ public class GameScreen implements Screen {
 		textStyle.font = font;
 		text = new Label("", textStyle);
 		text.setPosition(imageProvider.getScreenWidth() / 2 - 5, imageProvider.getScreenHeight() - 20);
-		//text.setOrigin(imageProvider.getScreenWidth()/2, imageProvider.getScreenHeight()-20);
 		testText = new Label("", textStyle);
 		testText.setPosition(0, imageProvider.getScreenHeight() - 2);
-		//text.setColor(Color.ORANGE);
-		//text.set
-		//		font = new BitmapFont(Gdx.files.internal("fipps_game_over.fnt"));
 		font = new BitmapFont(Gdx.files.internal("fipps.fnt"));
 		textStyle.font = font;
-		
+
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		highScoreValue = pref.getInteger("score", 0);
 
@@ -133,22 +130,21 @@ public class GameScreen implements Screen {
 		endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
 		restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
 		gameOverScore = new Label("", textStyle);
-		
 		highScore = new Label("highScoreValue", textStyle);
-
 		medal = assetManager.get("Medal.png", Texture.class);
 		scoreTex = assetManager.get("Score.png", Texture.class);
 		hi = assetManager.get("High.png", Texture.class);
-
 		blankMedal = assetManager.get("BlankMedal.png", Texture.class);
 		bronzeMedal = assetManager.get("BronzeMedal.png", Texture.class);
 		silverMedal = assetManager.get("SilverMedal.png", Texture.class);
 		goldMedal = assetManager.get("GoldMedal.png", Texture.class);
 		platinumMedal = assetManager.get("PlatinumMedal.png", Texture.class);
 		medalHolder = blankMedal;
-		
 		restart = assetManager.get("Restart.png", Texture.class);
 		restartBounds = new Rectangle(restartButton.x, restartButton.y, restart.getWidth(), restart.getHeight());
+		pause = assetManager.get("Pause.png", Texture.class);
+		pauseBounds = new Rectangle(5, imageProvider.getScreenHeight() - pause.getHeight() - 5, pause.getWidth(), pause.getHeight());
+		unpauseBounds = new Rectangle(imageProvider.getScreenWidth()/2-restart.getWidth()/2, imageProvider.getScreenHeight()/2-restart.getHeight()/2, restartBounds.width, restartBounds.height);
 
 		createDust();
 	}
@@ -170,13 +166,13 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
-		
+
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Filled);
 		shapeRenderer.setColor(0.19f, 0.54f, 0.85f, 1);
 		shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		shapeRenderer.end();
-		
+
 		update();
 
 		batch.setProjectionMatrix(camera.combined);
@@ -187,43 +183,73 @@ public class GameScreen implements Screen {
 		for (Cactus c : cacti)
 			c.render(batch);
 		text.setText("" + (int) cactusScore);
-		//		text.setText("Game Over");
-		if (!running)
+		if ((!running) && (!paused))
 			gameOver();
-		if (running)
+		if (running) {
 			text.draw(batch, 1);
-		//		testText.setText(""+cacti[0].getSpeed());
-		//		testText.draw(batch, 1);
+			batch.draw(pause, pauseBounds.x, pauseBounds.y);
+		}
 		batch.end();
 
 		updateEnd();
+		drawPause();
+	}
+
+	public void checkPause() {
+		if (running)
+			if (Gdx.input.isTouched()) {
+				if (pauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+					running = false;
+					paused = true;
+				}
+			}
+	}
+
+	public void drawPause() {
+		if (paused) {
+			Gdx.gl.glEnable(GL10.GL_BLEND);
+			Gdx.gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+			shapeRenderer.setProjectionMatrix(camera.combined);
+			shapeRenderer.begin(ShapeType.Filled);
+			shapeRenderer.setColor(0f, 0f, 0f, 0.2f);
+			shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
+			shapeRenderer.end();
+			Gdx.gl.glDisable(GL10.GL_BLEND);
+
+			batch.setProjectionMatrix(camera.combined);
+			batch.begin();
+			batch.draw(restart, unpauseBounds.x, unpauseBounds.y);
+			batch.end();
+		}
 	}
 
 	public void update() {
+		checkPause();
 		updateScore();
 		updateSpeed();
 		drawBackground();
-		if (nikola.getHealth() > 0) {
+		if (running) {
 			updateClouds();
 			updateCacti();
+
 		}
 		checkCollisions();
-		if (!running)
+		if ((!running) && (!paused))
 			restart();
 	}
 
 	public void updateEnd() {
-		if (!running)
+		if ((!running) && (!paused))
 			gameOverShape();
 	}
 
 	public void gameOver() {
-		if(cactusScore > highScoreValue){
+		if (cactusScore > highScoreValue) {
 			pref.putInteger("score", cactusScore);
 			highScoreValue = cactusScore;
 			pref.flush();
 		}
-		
+
 		gameOverText.draw(batch, 1);
 		if (gameOverText.getColor().a < 0.5f) {
 			gameOverText.setPosition(gameOverText.getX(), gameOverText.getY() + 0.5f);
@@ -268,16 +294,6 @@ public class GameScreen implements Screen {
 		shapeRenderer.line(endSlate.x + 2, endSlate.y + 3, endSlate.x + endSlate.width - 2, endSlate.y + 3);
 		shapeRenderer.line(endSlate.x + endSlate.width - 2, endSlate.y + 3, endSlate.x + endSlate.width - 2, endSlate.y + endSlate.height - 2);
 
-//		shapeRenderer.setColor(Color.BLACK);
-//		shapeRenderer.rect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
-//		shapeRenderer.setColor(Color.WHITE);
-//		shapeRenderer.rect(restartButton.x + 1, restartButton.y + 1, restartButton.width - 2, restartButton.height - 2);
-//		shapeRenderer.setColor(0.929f, 0.929f, 0.929f, 1);
-//		shapeRenderer.rect(restartButton.x + 1, restartButton.y + 1, restartButton.width - 2, restartButton.height / 2 - 1);
-//		shapeRenderer.setColor(Color.BLACK);
-//		shapeRenderer.triangle(restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 1.5f + 2.5f - 0.5f, restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 3 - 2.5f - 0.5f, restartButton.x + restartButton.width / 2 + 5, restartButton.y + restartButton.height / 2 - 0.5f);
-//		shapeRenderer.setColor(0, 0.686f, 0.278f, 1);
-//		shapeRenderer.triangle(restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 1.5f + 2.5f, restartButton.x + restartButton.width / 2 - 5, restartButton.y + restartButton.height / 3 - 2.5f, restartButton.x + restartButton.width / 2 + 5, restartButton.y + restartButton.height / 2);
 		shapeRenderer.end();
 		Gdx.gl.glDisable(GL10.GL_BLEND);
 
@@ -294,13 +310,13 @@ public class GameScreen implements Screen {
 			endScoreOffset = 40;
 		if (cactusScore >= 1000000)
 			endScoreOffset = 48;
-		
+
 		highScoreOffset = 0;
 		if (highScoreValue >= 10)
 			highScoreOffset = 8;
 		if (highScoreValue >= 100)
 			highScoreOffset = 16;
-		if (highScoreValue>= 1000)
+		if (highScoreValue >= 1000)
 			highScoreOffset = 24;
 		if (highScoreValue >= 10000)
 			highScoreOffset = 32;
@@ -439,18 +455,18 @@ public class GameScreen implements Screen {
 	}
 
 	public void checkCollisions() {
-			for (int i = 0; i < cacti.length; i++)
-				if (nikola.getSprite().getBoundingRectangle().overlaps(cacti[i].getSprite().getBoundingRectangle())) {
-					if (doesCollide(nikola, cacti[i])) {
-						if (canPlayHitSound) {
-							assetManager.get("Hit.wav", Sound.class).play(soundVolume);
-							canPlayHitSound = false;
-						}
-						cacti[0].setSpeed(0);
-						running = false;
-
+		for (int i = 0; i < cacti.length; i++)
+			if (nikola.getSprite().getBoundingRectangle().overlaps(cacti[i].getSprite().getBoundingRectangle())) {
+				if (doesCollide(nikola, cacti[i])) {
+					if (canPlayHitSound) {
+						assetManager.get("Hit.wav", Sound.class).play(soundVolume);
+						canPlayHitSound = false;
 					}
+					cacti[0].setSpeed(0);
+					running = false;
+
 				}
+			}
 		if (!running) {
 			nikola.setHealth(0);
 			for (int i = 0; i < cacti.length; i++)
@@ -483,14 +499,14 @@ public class GameScreen implements Screen {
 		if (!cactus0Passed)
 			if (cacti[0].getX() + cacti[0].getSprite().getWidth() < nikola.getX()) {
 				cactusScore++;
-				if(cactusScore > 0)
+				if (cactusScore > 0)
 					assetManager.get("Point.wav", Sound.class).play(soundVolume);
 				cactus0Passed = true;
 			}
 		if (!cactus1Passed)
 			if (cacti[1].getX() + cacti[1].getSprite().getWidth() < nikola.getX()) {
 				cactusScore++;
-				if(cactusScore > 0)
+				if (cactusScore > 0)
 					assetManager.get("Point.wav", Sound.class).play(soundVolume);
 				cactus1Passed = true;
 			}

@@ -37,6 +37,7 @@ public class Runners extends Game {
 		assetManager.load("PlatinumMedal.png", Texture.class);
 		assetManager.load("Menu.png", Texture.class);
 		assetManager.load("Restart.png", Texture.class);
+		assetManager.load("Pause.png", Texture.class);
 		
 		assetManager.load("Jump.wav", Sound.class);
 		assetManager.load("Hit.wav", Sound.class);
