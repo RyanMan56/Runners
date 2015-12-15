@@ -144,7 +144,7 @@ public class GameScreen implements Screen {
 		restartBounds = new Rectangle(restartButton.x, restartButton.y, restart.getWidth(), restart.getHeight());
 		pause = assetManager.get("Pause.png", Texture.class);
 		pauseBounds = new Rectangle(5, imageProvider.getScreenHeight() - pause.getHeight() - 5, pause.getWidth(), pause.getHeight());
-		unpauseBounds = new Rectangle(imageProvider.getScreenWidth()/2-restart.getWidth()/2, imageProvider.getScreenHeight()/2-restart.getHeight()/2, restartBounds.width, restartBounds.height);
+		unpauseBounds = new Rectangle(imageProvider.getScreenWidth() / 2 - restart.getWidth() / 2, imageProvider.getScreenHeight() / 2 - restart.getHeight() / 2, restartBounds.width, restartBounds.height);
 
 		createDust();
 	}
@@ -196,13 +196,22 @@ public class GameScreen implements Screen {
 	}
 
 	public void checkPause() {
-		if (running)
+		if (running) {
 			if (Gdx.input.isTouched()) {
 				if (pauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-					running = false;
 					paused = true;
+					running = false;
 				}
 			}
+		} else {
+			if (paused) {
+				if (Gdx.input.isTouched())
+					if (unpauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						running = true;
+						paused = false;
+					}
+			}
+		}
 	}
 
 	public void drawPause() {
@@ -231,6 +240,11 @@ public class GameScreen implements Screen {
 		if (running) {
 			updateClouds();
 			updateCacti();
+			for(Cloud c : clouds)
+				c.update();
+			nikola.update();
+			for(Cactus c : cacti)
+				c.update();
 
 		}
 		checkCollisions();
@@ -467,7 +481,7 @@ public class GameScreen implements Screen {
 
 				}
 			}
-		if (!running) {
+		if ((!running) && (!paused)) {
 			nikola.setHealth(0);
 			for (int i = 0; i < cacti.length; i++)
 				cacti[i].setShouldUpdate(false);

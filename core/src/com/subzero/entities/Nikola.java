@@ -82,14 +82,17 @@ public class Nikola extends Entity {
 				sprite.setRegion(animatedJumpTextures[1]);
 		}
 	}
-
-	public void render(SpriteBatch batch) {
+	
+	public void update(){
 		if (health > 0) {
 			elapsedTime += Gdx.graphics.getDeltaTime();
 			if (!jumpAnimationing)
 				sprite.setRegion(animation.getKeyFrame(elapsedTime, false));
 			move();
 		}
+	}
+
+	public void render(SpriteBatch batch) {
 		sprite.draw(batch);
 	}
 

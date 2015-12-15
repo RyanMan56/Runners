@@ -23,12 +23,8 @@ public class Cactus extends Entity {
 		sprite.setY(y);
 		speed = 1;
 	}
-
-	public void render(SpriteBatch batch) {
-		/*
-		 * if(x < -20){ x = (imageProvider.getScreenWidth()+startX); //speed *=
-		 * 1.1f; }
-		 */
+	
+	public void update(){
 		if (shouldUpdate) {
 			x -= speed;
 			sprite.setX(x);
@@ -39,6 +35,14 @@ public class Cactus extends Entity {
 			bounds[2].x = x + 14;
 			bounds[2].y = y + 10;
 		}
+	}
+
+	public void render(SpriteBatch batch) {
+		/*
+		 * if(x < -20){ x = (imageProvider.getScreenWidth()+startX); //speed *=
+		 * 1.1f; }
+		 */
+		
 		sprite.draw(batch);
 	}
 

@@ -16,12 +16,15 @@ public class Cloud extends Entity {
 //		speed = 0.25f;
 		speed = 0.1f;
 	}
-
-	public void render(SpriteBatch batch) {
+	
+	public void update(){
 		if (shouldUpdate) {
 			x -= speed;
 			sprite.setX(x);
 		}
+	}
+
+	public void render(SpriteBatch batch) {
 		sprite.draw(batch);
 	}
 
