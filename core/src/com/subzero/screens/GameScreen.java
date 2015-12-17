@@ -7,7 +7,6 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -23,6 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.subzero.background.Floor;
+import com.subzero.background.Mountains;
 import com.subzero.entities.BigCloud;
 import com.subzero.entities.Cactus;
 import com.subzero.entities.Cloud;
@@ -40,6 +40,7 @@ public class GameScreen implements Screen {
 	private OrthographicCamera camera;
 	private ImageProvider imageProvider = new ImageProvider();
 	private Floor floor;
+	private Mountains mountains;
 	private ShapeRenderer shapeRenderer;
 	private Nikola nikola;
 	private Cactus[] cacti = new Cactus[2];
@@ -90,6 +91,7 @@ public class GameScreen implements Screen {
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		floor = new Floor();
+		mountains = new Mountains(assetManager);
 		nikola = new Nikola(20, 12, 100, assetManager);
 		nikola.setSoundVolume(soundVolume);
 		rand = new Random();
@@ -177,6 +179,14 @@ public class GameScreen implements Screen {
 
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
+		if(running)
+			mountains.update(cacti[0].getSpeed());
+		mountains.render(batch);
+		batch.end();
+
+		drawBackground();
+
+		batch.begin();
 		for (Cloud c : clouds)
 			c.render(batch);
 		nikola.render(batch);
@@ -236,14 +246,14 @@ public class GameScreen implements Screen {
 		checkPause();
 		updateScore();
 		updateSpeed();
-		drawBackground();
+		//		drawBackground();
 		if (running) {
 			updateClouds();
 			updateCacti();
-			for(Cloud c : clouds)
-				c.update();
+			for (Cloud c : clouds)
+				c.update(cacti[0].getSpeed());
 			nikola.update();
-			for(Cactus c : cacti)
+			for (Cactus c : cacti)
 				c.update();
 
 		}
@@ -407,10 +417,10 @@ public class GameScreen implements Screen {
 					//				cacti[0].setBigCactus(cactus.isBigCactus());
 					//				cacti[1].setSprite(cactus.getSprite());
 					//				cacti[1].setBigCactus(cactus.isBigCactus());
-					clouds[0].setSpeed(0.25f);
-					clouds[1].setSpeed(0.25f);
-					clouds[0].setX(imageProvider.getScreenWidth());
-					clouds[1].setX(imageProvider.getScreenWidth() * 1.5f);
+					//					clouds[0].setSpeed(0.25f);
+					//					clouds[1].setSpeed(0.25f);
+					//					clouds[0].setX(imageProvider.getScreenWidth());
+					//					clouds[1].setX(imageProvider.getScreenWidth() * 1.5f);
 					//				cacti[0].setShouldUpdate(true);
 					//				cacti[1].setShouldUpdate(true);
 					clouds[0].setShouldUpdate(true);
@@ -428,11 +438,12 @@ public class GameScreen implements Screen {
 	}
 
 	public void updateSpeed() {
-		//if (cacti[0].getSpeed() <= 2.2f)
-		for (int i = 0; i < cacti.length; i++) {
-			cacti[i].increaseSpeedBy(0.0005f);
+		if (running) {
+			for (int i = 0; i < cacti.length; i++) {
+				cacti[i].increaseSpeedBy(0.0005f);
+			}
+			nikola.updateGameSpeed(cacti[0].getSpeed());
 		}
-		nikola.updateGameSpeed(cacti[0].getSpeed());
 	}
 
 	public void updateScore() {

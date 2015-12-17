@@ -17,9 +17,9 @@ public class Cloud extends Entity {
 		speed = 0.1f;
 	}
 	
-	public void update(){
+	public void update(float gameSpeed){
 		if (shouldUpdate) {
-			x -= speed;
+			x -= gameSpeed/16f;
 			sprite.setX(x);
 		}
 	}
