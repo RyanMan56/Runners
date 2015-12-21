@@ -16,6 +16,6 @@ public class Floor {
 		shapeRenderer.setColor(0.643f, 0.455f, 0.184f, 1);
 		shapeRenderer.rect(0, 9, imageProvider.getScreenWidth(), 6);
 		shapeRenderer.setColor(0.745f, 0.525f, 0.216f, 1);
-		shapeRenderer.rect(0, 15, imageProvider.getScreenWidth(), 4);
+		shapeRenderer.rect(0, 15, imageProvider.getScreenWidth(), 25);
 	}
 }

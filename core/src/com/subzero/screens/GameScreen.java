@@ -177,16 +177,15 @@ public class GameScreen implements Screen {
 
 		update();
 
+		drawBackground();
+		
 		batch.setProjectionMatrix(camera.combined);
+
 		batch.begin();
+		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, 1);
 		if(running)
 			mountains.update(cacti[0].getSpeed());
 		mountains.render(batch);
-		batch.end();
-
-		drawBackground();
-
-		batch.begin();
 		for (Cloud c : clouds)
 			c.render(batch);
 		nikola.render(batch);
@@ -504,11 +503,12 @@ public class GameScreen implements Screen {
 	public void updateClouds() {
 		for (int i = 0; i < clouds.length; i++) {
 			if (clouds[i].getX() < -(clouds[i].getSprite().getWidth())) {
-				if (rand.nextInt(2) == 0) {
+				int val = rand.nextInt(2);
+				if (val == 0) {
 					cloud.setY(clouds[i].getY());
 					clouds[i].setSprite(cloud.getSprite());
 				}
-				if (rand.nextInt(2) == 1) {
+				if (val == 1) {
 					bigCloud.setY(clouds[i].getY());
 					clouds[i].setSprite(bigCloud.getSprite());
 				}
