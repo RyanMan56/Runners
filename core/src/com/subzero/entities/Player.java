@@ -1,6 +1,7 @@
 package com.subzero.entities;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,7 +13,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
-public class Nikola extends Entity {
+public class Player extends Entity {
 	private boolean jumping = false;
 	private Vector2 groundLevel;
 	private float elapsedTime = 0;
@@ -24,18 +25,23 @@ public class Nikola extends Entity {
 	private boolean jumpAnimationing = false;
 	private float gameSpeed = 1;
 	private float soundVolume;
+	private Preferences pref;
+	private String defaultCharacter;
 
-	public Nikola(float x, float y, float health, AssetManager assetManager) {
+	public Player(float x, float y, float health, AssetManager assetManager) {
 		super(x, y, health, assetManager);
 		bounds = new Rectangle[2];
 		bounds[0] = new Rectangle(-20, 0, 8, 8);
 		bounds[1] = new Rectangle(-20, 6, 18, 16);
-		texture = assetManager.get("Nikola.png", Texture.class);
-		textureRegion = new TextureRegion(assetManager.get("Nikola-w.png", Texture.class));
+		pref = Gdx.app.getPreferences("com.subzero.runners");
+		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
+		
+		texture = assetManager.get(defaultCharacter+".png", Texture.class);
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-w.png", Texture.class));
 		animatedTextures = textureRegion.split(18, 22)[0];
 		animation = new Animation(period, animatedTextures);
 		animation.setPlayMode(PlayMode.LOOP);
-		textureRegion = new TextureRegion(assetManager.get("Nikola-j.png", Texture.class));
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-j.png", Texture.class));
 		animatedJumpTextures = textureRegion.split(18, 22)[0];
 		groundLevel = new Vector2(x, y);
 		sprite = new Sprite(texture, 18, 22);

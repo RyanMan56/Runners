@@ -27,7 +27,7 @@ import com.subzero.entities.BigCloud;
 import com.subzero.entities.Cactus;
 import com.subzero.entities.Cloud;
 import com.subzero.entities.Entity;
-import com.subzero.entities.Nikola;
+import com.subzero.entities.Player;
 import com.subzero.entities.SmallCactus;
 import com.subzero.entities.ThreeSmallCactus;
 import com.subzero.entities.TwoSmallCactus;
@@ -42,7 +42,7 @@ public class GameScreen implements Screen {
 	private Floor floor;
 	private Mountains mountains;
 	private ShapeRenderer shapeRenderer;
-	private Nikola nikola;
+	private Player player;
 	private Cactus[] cacti = new Cactus[2];
 	private Random rand;
 	private int spawnChance = 2;
@@ -92,8 +92,8 @@ public class GameScreen implements Screen {
 		shapeRenderer = new ShapeRenderer();
 		floor = new Floor();
 		mountains = new Mountains(assetManager);
-		nikola = new Nikola(20, 12, 100, assetManager);
-		nikola.setSoundVolume(soundVolume);
+		player = new Player(20, 12, 100, assetManager);
+		player.setSoundVolume(soundVolume);
 		rand = new Random();
 		cacti[0] = new Cactus(imageProvider.getScreenWidth(), 12, 100, assetManager);
 		cacti[1] = new Cactus(-20, 12, 100, assetManager);
@@ -188,7 +188,7 @@ public class GameScreen implements Screen {
 		mountains.render(batch);
 		for (Cloud c : clouds)
 			c.render(batch);
-		nikola.render(batch);
+		player.render(batch);
 		for (Cactus c : cacti)
 			c.render(batch);
 		text.setText("" + (int) cactusScore);
@@ -251,7 +251,7 @@ public class GameScreen implements Screen {
 			updateCacti();
 			for (Cloud c : clouds)
 				c.update(cacti[0].getSpeed());
-			nikola.update();
+			player.update();
 			for (Cactus c : cacti)
 				c.update();
 
@@ -424,8 +424,8 @@ public class GameScreen implements Screen {
 					//				cacti[1].setShouldUpdate(true);
 					clouds[0].setShouldUpdate(true);
 					clouds[1].setShouldUpdate(true);
-					nikola.setHealth(100);
-					nikola.updateGameSpeed(1);
+					player.setHealth(100);
+					player.updateGameSpeed(1);
 					endSlate.setY(endEndSlateY);
 					endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
 					restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
@@ -441,7 +441,7 @@ public class GameScreen implements Screen {
 			for (int i = 0; i < cacti.length; i++) {
 				cacti[i].increaseSpeedBy(0.0005f);
 			}
-			nikola.updateGameSpeed(cacti[0].getSpeed());
+			player.updateGameSpeed(cacti[0].getSpeed());
 		}
 	}
 
@@ -480,8 +480,8 @@ public class GameScreen implements Screen {
 
 	public void checkCollisions() {
 		for (int i = 0; i < cacti.length; i++)
-			if (nikola.getSprite().getBoundingRectangle().overlaps(cacti[i].getSprite().getBoundingRectangle())) {
-				if (doesCollide(nikola, cacti[i])) {
+			if (player.getSprite().getBoundingRectangle().overlaps(cacti[i].getSprite().getBoundingRectangle())) {
+				if (doesCollide(player, cacti[i])) {
 					if (canPlayHitSound) {
 						assetManager.get("Hit.wav", Sound.class).play(soundVolume);
 						canPlayHitSound = false;
@@ -492,7 +492,7 @@ public class GameScreen implements Screen {
 				}
 			}
 		if ((!running) && (!paused)) {
-			nikola.setHealth(0);
+			player.setHealth(0);
 			for (int i = 0; i < cacti.length; i++)
 				cacti[i].setShouldUpdate(false);
 			for (int i = 0; i < clouds.length; i++)
@@ -522,14 +522,14 @@ public class GameScreen implements Screen {
 		int randValue;
 
 		if (!cactus0Passed)
-			if (cacti[0].getX() + cacti[0].getSprite().getWidth() < nikola.getX()) {
+			if (cacti[0].getX() + cacti[0].getSprite().getWidth() < player.getX()) {
 				cactusScore++;
 				if (cactusScore > 0)
 					assetManager.get("Point.wav", Sound.class).play(soundVolume);
 				cactus0Passed = true;
 			}
 		if (!cactus1Passed)
-			if (cacti[1].getX() + cacti[1].getSprite().getWidth() < nikola.getX()) {
+			if (cacti[1].getX() + cacti[1].getSprite().getWidth() < player.getX()) {
 				cactusScore++;
 				if (cactusScore > 0)
 					assetManager.get("Point.wav", Sound.class).play(soundVolume);

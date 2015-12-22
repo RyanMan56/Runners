@@ -2,8 +2,8 @@ package com.subzero.screens;
 
 import java.util.Random;
 
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL10;
@@ -21,6 +21,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.subzero.background.Floor;
+import com.subzero.background.Mountains;
 import com.subzero.entities.BigCloud;
 import com.subzero.entities.Cloud;
 import com.subzero.images.ImageProvider;
@@ -54,37 +55,50 @@ public class MainMenuScreen implements Screen {
 	private Texture restart;
 	private float restartX, restartY, restartWidth, restartHeight;
 	private Rectangle restartBounds;
+	private Texture characterSelect;
+	private Rectangle characterSelectBounds;
 	private GameScreen gameScreen;
+	private CharacterSelectScreen characterSelectScreen;
 	private Runners game;
 	private Viewport viewport;
+	private Mountains mountains;
+	private Preferences pref;
+	private String defaultCharacter;
 
 	public MainMenuScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
 		this.assetManager = assetManager;
 		imageProvider = new ImageProvider();
 		gameScreen = new GameScreen(game, assetManager);
+		characterSelectScreen = new CharacterSelectScreen(game, assetManager);
+		pref = Gdx.app.getPreferences("com.subzero.runners");
+		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
+		
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		viewport = new FitViewport(imageProvider.getScreenWidth(), imageProvider.getScreenHeight(), camera);
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		floor = new Floor();
+		mountains = new Mountains(assetManager);
 		rand = new Random();
 		bigNikolaY = -122;
 		bigNikolaYDest = -20;
 		restart = assetManager.get("Restart.png", Texture.class);
 		restartX = 130;
-		restartY = 40;
+		restartY = 55;
 		restartWidth = restart.getWidth();
 		restartHeight = restart.getHeight();
 		restartBounds = new Rectangle(restartX, restartY, restartWidth, restartHeight);
+		characterSelect = assetManager.get("CharacterSelectButton.png", Texture.class);
+		characterSelectBounds = new Rectangle(restartX, restartY - 27, characterSelect.getWidth(), characterSelect.getHeight());
 
 		clouds[0] = new Cloud(imageProvider.getScreenWidth(), imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
 		clouds[1] = new Cloud(imageProvider.getScreenWidth() * 1.5f, imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
 		cloud = new Cloud(-50, clouds[0].getY(), 100, assetManager);
 		bigCloud = new BigCloud(-50, clouds[1].getY(), 100, assetManager);
 		title = assetManager.get("Menu.png", Texture.class);
-		textureRegion = new TextureRegion(assetManager.get("Nikola-j.png", Texture.class));
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-j.png", Texture.class));
 		animatedTextures = textureRegion.split(18, 22)[0];
 		animation = new Animation(period, animatedTextures);
 		animation.setPlayMode(PlayMode.LOOP);
@@ -93,12 +107,10 @@ public class MainMenuScreen implements Screen {
 		bigNikolaHeight = 122;
 		bigNikolaWidth = 100;
 
-		titleWidth = title.getWidth()*1.2f;//imageProvider.getScreenWidth() / (180 / 152f);
-		titleHeight = title.getHeight()*1.2f;//titleWidth / (152 / 18f);
+		titleWidth = title.getWidth() * 1.2f;//imageProvider.getScreenWidth() / (180 / 152f);
+		titleHeight = title.getHeight() * 1.2f;//titleWidth / (152 / 18f);
 
 		createDust();
-		Gdx.app.setLogLevel(Application.LOG_DEBUG);
-		System.out.println("Screen size "+Gdx.graphics.getWidth()+" : "+Gdx.graphics.getHeight());
 	}
 
 	public void createDust() {
@@ -118,18 +130,23 @@ public class MainMenuScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
-		
+
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Filled);
 		shapeRenderer.setColor(0.19f, 0.54f, 0.85f, 1);
 		shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		shapeRenderer.end();
-		
+
 		drawBackground();
+		mountains.update(speed);
 		updateClouds();
-		
+		for (Cloud c : clouds)
+			c.update(speed);
+
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
+		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, 1);
+		mountains.render(batch);
 		for (Cloud c : clouds)
 			c.render(batch);
 
@@ -141,7 +158,7 @@ public class MainMenuScreen implements Screen {
 				shapeAlpha = 1;
 			if (shapeAlpha == 1) {
 				bigNikolaY = bigNikolaYDest;
-				bigNikola = animatedTextures[1];
+				bigNikola = new TextureRegion(assetManager.get(defaultCharacter+".png", Texture.class));
 				finished = true;
 				arrived = true;
 				touched = false;
@@ -155,8 +172,8 @@ public class MainMenuScreen implements Screen {
 				arrivedTime = elapsedTime;
 				arrived = false;
 			} else {
-				if ((elapsedTime > arrivedTime + period * 2) && (animation.isAnimationFinished(elapsedTime))) {
-					bigNikola = animatedTextures[1];
+				if ((elapsedTime > arrivedTime + period * 4) && (animation.isAnimationFinished(elapsedTime))) {
+					bigNikola = new TextureRegion(assetManager.get(defaultCharacter+".png", Texture.class));
 					finished = true;
 				}
 			}
@@ -170,10 +187,14 @@ public class MainMenuScreen implements Screen {
 			}
 		}
 		if (finished) {
-			if (Gdx.input.isTouched())
+			if (Gdx.input.isTouched()) {
 				if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					game.setScreen(gameScreen);
 				}
+				if (characterSelectBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+					game.setScreen(characterSelectScreen);
+				}
+			}
 			if (shapeAlpha > 0)
 				shapeAlpha -= 0.2f;
 			if (shapeAlpha < 0)
@@ -184,6 +205,7 @@ public class MainMenuScreen implements Screen {
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, titleAlpha);
 		batch.draw(title, imageProvider.getScreenWidth() / 15, 90, titleWidth, titleHeight);
 		batch.draw(restart, restartX, restartY, restartWidth, restartHeight);
+		batch.draw(characterSelect, characterSelectBounds.x, characterSelectBounds.y);
 		batch.end();
 
 		Gdx.gl.glEnable(GL10.GL_BLEND);
@@ -220,7 +242,6 @@ public class MainMenuScreen implements Screen {
 		renderDust();
 		drawDust(shapeRenderer);
 		shapeRenderer.end();
-
 	}
 
 	public void renderDust() {

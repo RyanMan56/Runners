@@ -42,6 +42,15 @@ public class Runners extends Game {
 		assetManager.load("BackgroundMiddle.png", Texture.class);
 		assetManager.load("BackgroundBack.png", Texture.class);
 		assetManager.load("BackgroundNew.png", Texture.class);
+		assetManager.load("CharacterSelectButton.png", Texture.class);
+		assetManager.load("CharacterSelectText.png", Texture.class);
+		assetManager.load("PodiumBack.png", Texture.class);
+		assetManager.load("PodiumFront.png", Texture.class);
+		assetManager.load("NikolaName.png", Texture.class);
+		assetManager.load("Ryan.png", Texture.class);
+		assetManager.load("Ryan-w.png", Texture.class);
+		assetManager.load("Ryan-j.png", Texture.class);
+		assetManager.load("RyanName.png", Texture.class);
 		
 		assetManager.load("Jump.wav", Sound.class);
 		assetManager.load("Hit.wav", Sound.class);
