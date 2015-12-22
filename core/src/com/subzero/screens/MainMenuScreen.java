@@ -69,8 +69,8 @@ public class MainMenuScreen implements Screen {
 		this.game = game;
 		this.assetManager = assetManager;
 		imageProvider = new ImageProvider();
-		gameScreen = new GameScreen(game, assetManager);
-		characterSelectScreen = new CharacterSelectScreen(game, assetManager);
+		gameScreen = new GameScreen(game, assetManager, this);
+		characterSelectScreen = new CharacterSelectScreen(game, assetManager, this);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 		
@@ -121,8 +121,8 @@ public class MainMenuScreen implements Screen {
 
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
-
+		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
+		bigNikola = new TextureRegion(assetManager.get(defaultCharacter+".png", Texture.class));
 	}
 
 	@Override

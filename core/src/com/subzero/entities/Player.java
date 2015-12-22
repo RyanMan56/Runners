@@ -48,6 +48,21 @@ public class Player extends Entity {
 		sprite.setX(x);
 		sprite.setY(y);
 	}
+	
+	public void setCharacter(){
+		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
+		texture = assetManager.get(defaultCharacter+".png", Texture.class);
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-w.png", Texture.class));
+		animatedTextures = textureRegion.split(18, 22)[0];
+		animation = new Animation(period, animatedTextures);
+		animation.setPlayMode(PlayMode.LOOP);
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-j.png", Texture.class));
+		animatedJumpTextures = textureRegion.split(18, 22)[0];
+		groundLevel = new Vector2(x, y);
+		sprite = new Sprite(texture, 18, 22);
+		sprite.setX(x);
+		sprite.setY(y);
+	}
 
 	public void updateGameSpeed(float gameSpeed) {
 		this.gameSpeed = gameSpeed;

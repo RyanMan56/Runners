@@ -77,14 +77,16 @@ public class GameScreen implements Screen {
 	private Preferences pref;
 	private int highScoreValue;
 	private Runners game;
-	private Texture restart, pause;
-	private Rectangle restartBounds, pauseBounds, unpauseBounds;
+	private Texture restart, pause, backButton;
+	private Rectangle restartBounds, pauseBounds, unpauseBounds, backButtonBounds;
 	private Viewport viewport;
 	private boolean paused = false;
+	private Screen oldScreen;
 
-	public GameScreen(Runners game, AssetManager assetManager) {
+	public GameScreen(Runners game, AssetManager assetManager, Screen screen) {
 		this.game = game;
 		this.assetManager = assetManager;
+		this.oldScreen = screen;
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		viewport = new FitViewport(imageProvider.getScreenWidth(), imageProvider.getScreenHeight(), camera);
@@ -147,6 +149,8 @@ public class GameScreen implements Screen {
 		pause = assetManager.get("Pause.png", Texture.class);
 		pauseBounds = new Rectangle(5, imageProvider.getScreenHeight() - pause.getHeight() - 5, pause.getWidth(), pause.getHeight());
 		unpauseBounds = new Rectangle(imageProvider.getScreenWidth() / 2 - restart.getWidth() / 2, imageProvider.getScreenHeight() / 2 - restart.getHeight() / 2, restartBounds.width, restartBounds.height);
+		backButton = assetManager.get("BackButton.png", Texture.class);
+		backButtonBounds = new Rectangle(restartButton.x+restart.getWidth()+18, restartButton.y, backButton.getWidth(), backButton.getHeight());
 
 		createDust();
 	}
@@ -159,8 +163,11 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
-
+		player = new Player(20, 12, 100, assetManager);
+		player.setSoundVolume(soundVolume);
+		performRestart();
+//		player.setCharacter();
+//		player.setY(12);
 	}
 
 	@Override
@@ -257,8 +264,10 @@ public class GameScreen implements Screen {
 
 		}
 		checkCollisions();
-		if ((!running) && (!paused))
+		if ((!running) && (!paused)){
 			restart();
+			toMenu();
+		}
 	}
 
 	public void updateEnd() {
@@ -288,6 +297,7 @@ public class GameScreen implements Screen {
 			endSlateBorder.y++;
 			restartButton.y++;
 			restartBounds.y++;
+			backButtonBounds.y++;
 			//			gameOverScore.moveBy(0, 1);
 			//			highScore.moveBy(0, 1);
 			endSlateAlpha = endSlate.y / (startEndSlateY);
@@ -382,6 +392,7 @@ public class GameScreen implements Screen {
 		highScore.draw(batch, 1);
 		batch.draw(medalHolder, endSlate.x + 9, endSlate.y + 7.5f);
 		batch.draw(restart, restartBounds.x, restartBounds.y, restartBounds.width, restartBounds.height);
+		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
 		batch.end();
 	}
 
@@ -389,51 +400,48 @@ public class GameScreen implements Screen {
 		if (!restarting)
 			if (restartable)
 				if ((restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
-					assetManager.get("Select.wav", Sound.class).play(soundVolume);
-					restartable = false;
-					restarting = true;
-					cacti[0] = new Cactus(imageProvider.getScreenWidth(), 12, 100, assetManager);
-					cacti[1] = new Cactus(-20, 12, 100, assetManager);
-					twoSmallCactus = new TwoSmallCactus(-50, 12, 100, assetManager);
-					twoSmallCactus2 = new TwoSmallCactus(-50, 12, 100, assetManager);
-					threeSmallCactus = new ThreeSmallCactus(-50, 12, 100, assetManager);
-					threeSmallCactus2 = new ThreeSmallCactus(-50, 12, 100, assetManager);
-					cactus = new Cactus(-50, 12, 100, assetManager);
-					cactus2 = new Cactus(-50, 12, 100, assetManager);
-					smallCactus = new SmallCactus(-50, 12, 100, assetManager);
-					smallCactus2 = new SmallCactus(-50, 12, 100, assetManager);
-					cactus0Passed = false;
-					cactus1Passed = false;
-					cactusScore = -1;
-					gameOverText.setColor(gameOverText.getColor().r, gameOverText.getColor().g, gameOverText.getColor().b, 0);
-					gameOverText.setPosition(imageProvider.getScreenWidth() / 4.5f, imageProvider.getScreenHeight() / 1.3f);//+7f);
-					//				cacti[0].setX(imageProvider.getScreenWidth());
-					//				cacti[1].setX(-20);
-					//				score = 0;
-					//				cacti[0].setSpeed(1);
-					//				cacti[1].setSpeed(1);
-					//				cacti[0].setSprite(cactus.getSprite());
-					//				cacti[0].setBigCactus(cactus.isBigCactus());
-					//				cacti[1].setSprite(cactus.getSprite());
-					//				cacti[1].setBigCactus(cactus.isBigCactus());
-					//					clouds[0].setSpeed(0.25f);
-					//					clouds[1].setSpeed(0.25f);
-					//					clouds[0].setX(imageProvider.getScreenWidth());
-					//					clouds[1].setX(imageProvider.getScreenWidth() * 1.5f);
-					//				cacti[0].setShouldUpdate(true);
-					//				cacti[1].setShouldUpdate(true);
-					clouds[0].setShouldUpdate(true);
-					clouds[1].setShouldUpdate(true);
-					player.setHealth(100);
-					player.updateGameSpeed(1);
-					endSlate.setY(endEndSlateY);
-					endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
-					restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
-					restartBounds.y = restartButton.y;
-					canPlayHitSound = true;
-					restarting = false;
-					running = true;
+					performRestart();
 				}
+	}
+	
+	public void performRestart(){
+		assetManager.get("Select.wav", Sound.class).play(soundVolume);
+		restartable = false;
+		restarting = true;
+		cacti[0] = new Cactus(imageProvider.getScreenWidth(), 12, 100, assetManager);
+		cacti[1] = new Cactus(-20, 12, 100, assetManager);
+		twoSmallCactus = new TwoSmallCactus(-50, 12, 100, assetManager);
+		twoSmallCactus2 = new TwoSmallCactus(-50, 12, 100, assetManager);
+		threeSmallCactus = new ThreeSmallCactus(-50, 12, 100, assetManager);
+		threeSmallCactus2 = new ThreeSmallCactus(-50, 12, 100, assetManager);
+		cactus = new Cactus(-50, 12, 100, assetManager);
+		cactus2 = new Cactus(-50, 12, 100, assetManager);
+		smallCactus = new SmallCactus(-50, 12, 100, assetManager);
+		smallCactus2 = new SmallCactus(-50, 12, 100, assetManager);
+		cactus0Passed = false;
+		cactus1Passed = false;
+		cactusScore = -1;
+		gameOverText.setColor(gameOverText.getColor().r, gameOverText.getColor().g, gameOverText.getColor().b, 0);
+		gameOverText.setPosition(imageProvider.getScreenWidth() / 4.5f, imageProvider.getScreenHeight() / 1.3f);//+7f);
+		clouds[0].setShouldUpdate(true);
+		clouds[1].setShouldUpdate(true);
+		player.setHealth(100);
+		player.updateGameSpeed(1);
+		endSlate.setY(endEndSlateY);
+		endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
+		restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
+		restartBounds.y = restartButton.y;
+		backButtonBounds.y = restartBounds.y;
+		canPlayHitSound = true;
+		restarting = false;
+		running = true;
+
+	}
+	
+	public void toMenu(){
+		if ((backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
+			game.setScreen(oldScreen);
+		}
 	}
 
 	public void updateSpeed() {

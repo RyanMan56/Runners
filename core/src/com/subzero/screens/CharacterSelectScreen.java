@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.subzero.background.Floor;
@@ -23,7 +24,7 @@ import com.subzero.entities.Podium;
 import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
 
-public class CharacterSelectScreen implements Screen{
+public class CharacterSelectScreen implements Screen {
 	private AssetManager assetManager;
 	private Runners game;
 	private OrthographicCamera camera;
@@ -43,10 +44,14 @@ public class CharacterSelectScreen implements Screen{
 	private Podium nikolaPodium, ryanPodium;
 	private Preferences pref;
 	private String defaultCharacter;
+	private Texture backButton;
+	private Rectangle backButtonBounds;
+	private Screen oldScreen;
 
-	public CharacterSelectScreen(Runners game, AssetManager assetManager) {
+	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen) {
 		this.game = game;
 		this.assetManager = assetManager;
+		this.oldScreen = screen;
 		imageProvider = new ImageProvider();
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
@@ -61,31 +66,31 @@ public class CharacterSelectScreen implements Screen{
 		cloud = new Cloud(-50, clouds[0].getY(), 100, assetManager);
 		bigCloud = new BigCloud(-50, clouds[1].getY(), 100, assetManager);
 		characterSelectText = assetManager.get("CharacterSelectText.png", Texture.class); // 36pt text size Upheaval TT
-		
+		backButton = assetManager.get("Back.png", Texture.class);
+		backButtonBounds = new Rectangle(3, imageProvider.getScreenHeight() - backButton.getHeight() / 2 - 6.5f, backButton.getWidth() / 2, backButton.getHeight() / 2);
+
 		createDust();
-		
+
 		nikolaPodium = new Podium("Nikola", 40, 32, assetManager);
 		ryanPodium = new Podium("Ryan", 120, 32, assetManager);
 		nikolaPodium.setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
-		
-		if(defaultCharacter.equals("Nikola")){
+
+		if (defaultCharacter.equals("Nikola")) {
 			nikolaPodium.setSelected(true);
 			ryanPodium.setSelected(false);
-		}
-		else if(defaultCharacter.equals("Ryan")){
+		} else if (defaultCharacter.equals("Ryan")) {
 			nikolaPodium.setSelected(false);
 			ryanPodium.setSelected(true);
 		}
-			
-		
+
 	}
 
 	@Override
 	public void show() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -93,51 +98,56 @@ public class CharacterSelectScreen implements Screen{
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
-		
+
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Filled);
 		shapeRenderer.setColor(0.19f, 0.54f, 0.85f, 1);
 		shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		shapeRenderer.end();
-		
+
 		drawBackground();
 		mountains.update(speed);
 		updateClouds();
 		for (Cloud c : clouds)
 			c.update(speed);
-		if(nikolaPodium.checkSelecting(camera)){
+		if (Gdx.input.isTouched()) {
+			if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+				game.setScreen(oldScreen);
+			}
+		}
+		if (nikolaPodium.checkSelecting(camera)) {
 			ryanPodium.setSelected(false);
 			defaultCharacter = "Nikola";
 			pref.putString("defaultCharacter", defaultCharacter);
 			pref.flush();
 		}
-		if(ryanPodium.checkSelecting(camera)){
+		if (ryanPodium.checkSelecting(camera)) {
 			nikolaPodium.setSelected(false);
 			defaultCharacter = "Ryan";
 			pref.putString("defaultCharacter", defaultCharacter);
 			pref.flush();
 		}
-		
+
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		mountains.render(batch);
-		for(Cloud c : clouds)
+		for (Cloud c : clouds)
 			c.render(batch);
 		nikolaPodium.render(batch);
 		ryanPodium.render(batch);
-		batch.draw(characterSelectText, imageProvider.getScreenWidth()/2-characterSelectText.getWidth()/4, imageProvider.getScreenHeight()-characterSelectText.getHeight(), characterSelectText.getWidth()/2, characterSelectText.getHeight()/2);
-		
-		
+		batch.draw(characterSelectText, imageProvider.getScreenWidth() / 2 - characterSelectText.getWidth() / 4, imageProvider.getScreenHeight() - characterSelectText.getHeight(), characterSelectText.getWidth() / 2, characterSelectText.getHeight() / 2);
+		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
+
 		batch.end();
-		
+
 	}
-	
+
 	public void createDust() {
 		for (int i = 0; i < dust.length; i++) {
 			dust[i] = new Rectangle(rand.nextInt((int) imageProvider.getScreenWidth()), rand.nextInt(4) + 10, 1, 1);
 		}
 	}
-	
+
 	public void drawBackground() {
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Filled);
@@ -146,7 +156,7 @@ public class CharacterSelectScreen implements Screen{
 		drawDust(shapeRenderer);
 		shapeRenderer.end();
 	}
-	
+
 	public void drawDust(ShapeRenderer shapeRenderer) {
 		shapeRenderer.setColor(0.55f, 0.39f, 0.15f, 1);
 		for (int i = 0; i < dust.length; i++) {
@@ -154,8 +164,8 @@ public class CharacterSelectScreen implements Screen{
 
 		}
 	}
-	
-	public void renderDust(){
+
+	public void renderDust() {
 		for (int i = 0; i < dust.length; i++) {
 			dust[i].x -= speed;
 			if (dust[i].getX() < -1) {
@@ -163,7 +173,7 @@ public class CharacterSelectScreen implements Screen{
 			}
 		}
 	}
-	
+
 	public void updateClouds() {
 		for (int i = 0; i < clouds.length; i++) {
 			if (clouds[i].getX() < -(clouds[i].getSprite().getWidth())) {
@@ -183,31 +193,31 @@ public class CharacterSelectScreen implements Screen{
 
 	@Override
 	public void resize(int width, int height) {
-		viewport.update(width, height);		
+		viewport.update(width, height);
 	}
 
 	@Override
 	public void pause() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void resume() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void hide() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

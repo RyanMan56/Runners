@@ -51,6 +51,8 @@ public class Runners extends Game {
 		assetManager.load("Ryan-w.png", Texture.class);
 		assetManager.load("Ryan-j.png", Texture.class);
 		assetManager.load("RyanName.png", Texture.class);
+		assetManager.load("Back.png", Texture.class);
+		assetManager.load("BackButton.png", Texture.class);
 		
 		assetManager.load("Jump.wav", Sound.class);
 		assetManager.load("Hit.wav", Sound.class);
