@@ -145,14 +145,16 @@ public class GameScreen implements Screen {
 		platinumMedal = assetManager.get("PlatinumMedal.png", Texture.class);
 		medalHolder = blankMedal;
 		restart = assetManager.get("Restart.png", Texture.class);
-		restartBounds = new Rectangle(restartButton.x, restartButton.y, restart.getWidth(), restart.getHeight());
+		restartBounds = new Rectangle(restartButton.x+restart.getWidth()+18, restartButton.y, restart.getWidth(), restart.getHeight());
 		pause = assetManager.get("Pause.png", Texture.class);
 		pauseBounds = new Rectangle(5, imageProvider.getScreenHeight() - pause.getHeight() - 5, pause.getWidth(), pause.getHeight());
 		unpauseBounds = new Rectangle(imageProvider.getScreenWidth() / 2 - restart.getWidth() / 2, imageProvider.getScreenHeight() / 2 - restart.getHeight() / 2, restartBounds.width, restartBounds.height);
 		backButton = assetManager.get("BackButton.png", Texture.class);
-		backButtonBounds = new Rectangle(restartButton.x+restart.getWidth()+18, restartButton.y, backButton.getWidth(), backButton.getHeight());
+		backButtonBounds = new Rectangle(restartButton.x, restartButton.y, backButton.getWidth(), backButton.getHeight());
 
 		createDust();
+		
+		
 	}
 
 	public void createDust() {
@@ -166,8 +168,6 @@ public class GameScreen implements Screen {
 		player = new Player(20, 12, 100, assetManager);
 		player.setSoundVolume(soundVolume);
 		performRestart();
-//		player.setCharacter();
-//		player.setY(12);
 	}
 
 	@Override

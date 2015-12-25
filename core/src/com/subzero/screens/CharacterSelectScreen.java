@@ -47,6 +47,7 @@ public class CharacterSelectScreen implements Screen {
 	private Texture backButton;
 	private Rectangle backButtonBounds;
 	private Screen oldScreen;
+	private float timePassed = 0, activeTime = 0.15f;
 
 	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen) {
 		this.game = game;
@@ -67,7 +68,7 @@ public class CharacterSelectScreen implements Screen {
 		bigCloud = new BigCloud(-50, clouds[1].getY(), 100, assetManager);
 		characterSelectText = assetManager.get("CharacterSelectText.png", Texture.class); // 36pt text size Upheaval TT
 		backButton = assetManager.get("Back.png", Texture.class);
-		backButtonBounds = new Rectangle(3, imageProvider.getScreenHeight() - backButton.getHeight() / 2 - 6.5f, backButton.getWidth() / 2, backButton.getHeight() / 2);
+		backButtonBounds = new Rectangle(3, imageProvider.getScreenHeight() - backButton.getHeight() / 2 - 6f, backButton.getWidth() / 2, backButton.getHeight() / 2);
 
 		createDust();
 
@@ -89,8 +90,7 @@ public class CharacterSelectScreen implements Screen {
 
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
-
+		timePassed = 0;
 	}
 
 	@Override
@@ -98,6 +98,8 @@ public class CharacterSelectScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
+
+		timePassed += Gdx.graphics.getDeltaTime();
 
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Filled);
@@ -110,22 +112,25 @@ public class CharacterSelectScreen implements Screen {
 		updateClouds();
 		for (Cloud c : clouds)
 			c.update(speed);
-		if (Gdx.input.isTouched()) {
-			if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-				game.setScreen(oldScreen);
+		if (timePassed > activeTime)
+			if (Gdx.input.isTouched()) {
+				if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+					game.setScreen(oldScreen);
+				}
 			}
-		}
-		if (nikolaPodium.checkSelecting(camera)) {
-			ryanPodium.setSelected(false);
-			defaultCharacter = "Nikola";
-			pref.putString("defaultCharacter", defaultCharacter);
-			pref.flush();
-		}
-		if (ryanPodium.checkSelecting(camera)) {
-			nikolaPodium.setSelected(false);
-			defaultCharacter = "Ryan";
-			pref.putString("defaultCharacter", defaultCharacter);
-			pref.flush();
+		if (timePassed > activeTime) {
+			if (nikolaPodium.checkSelecting(camera)) {
+				ryanPodium.setSelected(false);
+				defaultCharacter = "Nikola";
+				pref.putString("defaultCharacter", defaultCharacter);
+				pref.flush();
+			}
+			if (ryanPodium.checkSelecting(camera)) {
+				nikolaPodium.setSelected(false);
+				defaultCharacter = "Ryan";
+				pref.putString("defaultCharacter", defaultCharacter);
+				pref.flush();
+			}
 		}
 
 		batch.setProjectionMatrix(camera.combined);

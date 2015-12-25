@@ -64,6 +64,7 @@ public class MainMenuScreen implements Screen {
 	private Mountains mountains;
 	private Preferences pref;
 	private String defaultCharacter;
+	private float timePassed = 0, activeTime = 0.15f;
 
 	public MainMenuScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
@@ -73,7 +74,7 @@ public class MainMenuScreen implements Screen {
 		characterSelectScreen = new CharacterSelectScreen(game, assetManager, this);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
-		
+
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		viewport = new FitViewport(imageProvider.getScreenWidth(), imageProvider.getScreenHeight(), camera);
@@ -98,7 +99,7 @@ public class MainMenuScreen implements Screen {
 		cloud = new Cloud(-50, clouds[0].getY(), 100, assetManager);
 		bigCloud = new BigCloud(-50, clouds[1].getY(), 100, assetManager);
 		title = assetManager.get("Menu.png", Texture.class);
-		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-j.png", Texture.class));
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter + "-j.png", Texture.class));
 		animatedTextures = textureRegion.split(18, 22)[0];
 		animation = new Animation(period, animatedTextures);
 		animation.setPlayMode(PlayMode.LOOP);
@@ -122,7 +123,8 @@ public class MainMenuScreen implements Screen {
 	@Override
 	public void show() {
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
-		bigNikola = new TextureRegion(assetManager.get(defaultCharacter+".png", Texture.class));
+		bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
+		timePassed = 0;
 	}
 
 	@Override
@@ -130,6 +132,8 @@ public class MainMenuScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
+
+		timePassed += Gdx.graphics.getDeltaTime();
 
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Filled);
@@ -158,7 +162,7 @@ public class MainMenuScreen implements Screen {
 				shapeAlpha = 1;
 			if (shapeAlpha == 1) {
 				bigNikolaY = bigNikolaYDest;
-				bigNikola = new TextureRegion(assetManager.get(defaultCharacter+".png", Texture.class));
+				bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
 				finished = true;
 				arrived = true;
 				touched = false;
@@ -173,7 +177,7 @@ public class MainMenuScreen implements Screen {
 				arrived = false;
 			} else {
 				if ((elapsedTime > arrivedTime + period * 4) && (animation.isAnimationFinished(elapsedTime))) {
-					bigNikola = new TextureRegion(assetManager.get(defaultCharacter+".png", Texture.class));
+					bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
 					finished = true;
 				}
 			}
@@ -182,19 +186,21 @@ public class MainMenuScreen implements Screen {
 			if (titleAlpha < 1)
 				titleAlpha += 0.1f;
 		} else {
-			if (Gdx.input.isTouched()) {
-				touched = true;
-			}
+			if (timePassed > activeTime)
+				if (Gdx.input.isTouched()) {
+					touched = true;
+				}
 		}
 		if (finished) {
-			if (Gdx.input.isTouched()) {
-				if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-					game.setScreen(gameScreen);
+			if (timePassed > activeTime)
+				if (Gdx.input.isTouched()) {
+					if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						game.setScreen(gameScreen);
+					}
+					if (characterSelectBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						game.setScreen(characterSelectScreen);
+					}
 				}
-				if (characterSelectBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-					game.setScreen(characterSelectScreen);
-				}
-			}
 			if (shapeAlpha > 0)
 				shapeAlpha -= 0.2f;
 			if (shapeAlpha < 0)
