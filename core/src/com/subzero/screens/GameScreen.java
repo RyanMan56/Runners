@@ -215,6 +215,7 @@ public class GameScreen implements Screen {
 		if (running) {
 			if (Gdx.input.isTouched()) {
 				if (pauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					paused = true;
 					running = false;
 				}
@@ -223,6 +224,7 @@ public class GameScreen implements Screen {
 			if (paused) {
 				if (Gdx.input.isTouched())
 					if (unpauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						running = true;
 						paused = false;
 					}
@@ -400,6 +402,7 @@ public class GameScreen implements Screen {
 		if (!restarting)
 			if (restartable)
 				if ((restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
+					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					performRestart();
 				}
 	}
@@ -440,6 +443,7 @@ public class GameScreen implements Screen {
 	
 	public void toMenu(){
 		if ((backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
+			assetManager.get("Select.wav", Sound.class).play(soundVolume);
 			game.setScreen(oldScreen);
 		}
 	}

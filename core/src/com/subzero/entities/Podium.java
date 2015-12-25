@@ -2,6 +2,7 @@ package com.subzero.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -26,6 +27,7 @@ public class Podium {
 	private boolean animate = false;
 	private Sprite sprite;
 	private AssetManager assetManager;
+	private float soundVolume = 0.5f;
 
 	public Podium(String characterName, float x, float y, AssetManager assetManager) {
 		this.assetManager = assetManager;
@@ -62,6 +64,7 @@ public class Podium {
 				if (new Rectangle(x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale).contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					selected = true;
 					animate = true;
+					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					return true;
 				}
 			}

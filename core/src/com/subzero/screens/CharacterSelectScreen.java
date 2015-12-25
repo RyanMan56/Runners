@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -48,6 +49,7 @@ public class CharacterSelectScreen implements Screen {
 	private Rectangle backButtonBounds;
 	private Screen oldScreen;
 	private float timePassed = 0, activeTime = 0.15f;
+	private float soundVolume = 0.5f;
 
 	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen) {
 		this.game = game;
@@ -115,6 +117,7 @@ public class CharacterSelectScreen implements Screen {
 		if (timePassed > activeTime)
 			if (Gdx.input.isTouched()) {
 				if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					game.setScreen(oldScreen);
 				}
 			}

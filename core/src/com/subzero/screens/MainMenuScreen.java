@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -65,6 +66,7 @@ public class MainMenuScreen implements Screen {
 	private Preferences pref;
 	private String defaultCharacter;
 	private float timePassed = 0, activeTime = 0.15f;
+	private float soundVolume = 0.5f;
 
 	public MainMenuScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
@@ -195,9 +197,11 @@ public class MainMenuScreen implements Screen {
 			if (timePassed > activeTime)
 				if (Gdx.input.isTouched()) {
 					if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						game.setScreen(gameScreen);
 					}
 					if (characterSelectBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						game.setScreen(characterSelectScreen);
 					}
 				}
