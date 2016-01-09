@@ -65,7 +65,7 @@ public class MainMenuScreen implements Screen {
 	private Mountains mountains;
 	private Preferences pref;
 	private String defaultCharacter;
-	private float timePassed = 0, activeTime = 0.15f;
+	private float timePassed = 0, initActiveTime = 0.15f, activeTime;
 	private float soundVolume = 0.5f;
 
 	public MainMenuScreen(Runners game, AssetManager assetManager) {
@@ -114,6 +114,7 @@ public class MainMenuScreen implements Screen {
 		titleHeight = title.getHeight() * 1.2f;//titleWidth / (152 / 18f);
 
 		createDust();
+		System.out.println("Constructor");
 	}
 
 	public void createDust() {
@@ -127,6 +128,7 @@ public class MainMenuScreen implements Screen {
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 		bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
 		timePassed = 0;
+		System.out.println("Show");
 	}
 
 	@Override
@@ -166,6 +168,7 @@ public class MainMenuScreen implements Screen {
 				bigNikolaY = bigNikolaYDest;
 				bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
 				finished = true;
+				activeTime = timePassed + initActiveTime;
 				arrived = true;
 				touched = false;
 			}
@@ -181,6 +184,7 @@ public class MainMenuScreen implements Screen {
 				if ((elapsedTime > arrivedTime + period * 4) && (animation.isAnimationFinished(elapsedTime))) {
 					bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
 					finished = true;
+					activeTime = timePassed + initActiveTime;
 				}
 			}
 		}
@@ -194,7 +198,8 @@ public class MainMenuScreen implements Screen {
 				}
 		}
 		if (finished) {
-			if (timePassed > activeTime)
+			if (timePassed > activeTime){
+				activeTime = 0;
 				if (Gdx.input.isTouched()) {
 					if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 						assetManager.get("Select.wav", Sound.class).play(soundVolume);
@@ -205,6 +210,7 @@ public class MainMenuScreen implements Screen {
 						game.setScreen(characterSelectScreen);
 					}
 				}
+			}
 			if (shapeAlpha > 0)
 				shapeAlpha -= 0.2f;
 			if (shapeAlpha < 0)

@@ -153,8 +153,6 @@ public class GameScreen implements Screen {
 		backButtonBounds = new Rectangle(restartButton.x, restartButton.y, backButton.getWidth(), backButton.getHeight());
 
 		createDust();
-		
-		
 	}
 
 	public void createDust() {

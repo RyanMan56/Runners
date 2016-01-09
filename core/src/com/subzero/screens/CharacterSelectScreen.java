@@ -45,8 +45,8 @@ public class CharacterSelectScreen implements Screen {
 	private Podium nikolaPodium, ryanPodium;
 	private Preferences pref;
 	private String defaultCharacter;
-	private Texture backButton;
-	private Rectangle backButtonBounds;
+	private Texture backButton, playButton;
+	private Rectangle backButtonBounds, playButtonBounds;
 	private Screen oldScreen;
 	private float timePassed = 0, activeTime = 0.15f;
 	private float soundVolume = 0.5f;
@@ -71,6 +71,8 @@ public class CharacterSelectScreen implements Screen {
 		characterSelectText = assetManager.get("CharacterSelectText.png", Texture.class); // 36pt text size Upheaval TT
 		backButton = assetManager.get("Back.png", Texture.class);
 		backButtonBounds = new Rectangle(3, imageProvider.getScreenHeight() - backButton.getHeight() / 2 - 6f, backButton.getWidth() / 2, backButton.getHeight() / 2);
+		playButton = assetManager.get("Restart.png", Texture.class);
+		playButtonBounds = new Rectangle(imageProvider.getScreenWidth()/2-playButton.getWidth()/4, 10, playButton.getWidth()/2, playButton.getHeight()/2);
 
 		createDust();
 
@@ -145,6 +147,7 @@ public class CharacterSelectScreen implements Screen {
 		ryanPodium.render(batch);
 		batch.draw(characterSelectText, imageProvider.getScreenWidth() / 2 - characterSelectText.getWidth() / 4, imageProvider.getScreenHeight() - characterSelectText.getHeight(), characterSelectText.getWidth() / 2, characterSelectText.getHeight() / 2);
 		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
+		batch.draw(playButton, playButtonBounds.x, playButtonBounds.y, playButtonBounds.width, playButtonBounds.height);
 
 		batch.end();
 
