@@ -47,14 +47,15 @@ public class CharacterSelectScreen implements Screen {
 	private String defaultCharacter;
 	private Texture backButton, playButton;
 	private Rectangle backButtonBounds, playButtonBounds;
-	private Screen oldScreen;
+	private Screen oldScreen, gameScreen;
 	private float timePassed = 0, activeTime = 0.15f;
 	private float soundVolume = 0.5f;
 
-	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen) {
+	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen, Screen gameScreen) {
 		this.game = game;
 		this.assetManager = assetManager;
 		this.oldScreen = screen;
+		this.gameScreen = gameScreen;
 		imageProvider = new ImageProvider();
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
@@ -72,12 +73,12 @@ public class CharacterSelectScreen implements Screen {
 		backButton = assetManager.get("Back.png", Texture.class);
 		backButtonBounds = new Rectangle(3, imageProvider.getScreenHeight() - backButton.getHeight() / 2 - 6f, backButton.getWidth() / 2, backButton.getHeight() / 2);
 		playButton = assetManager.get("Restart.png", Texture.class);
-		playButtonBounds = new Rectangle(imageProvider.getScreenWidth()/2-playButton.getWidth()/4, 10, playButton.getWidth()/2, playButton.getHeight()/2);
+		playButtonBounds = new Rectangle(imageProvider.getScreenWidth()/2-playButton.getWidth()/(1.5f*2), 5, playButton.getWidth()/1.5f, playButton.getHeight()/1.5f);
 
 		createDust();
 
-		nikolaPodium = new Podium("Nikola", 40, 32, assetManager);
-		ryanPodium = new Podium("Ryan", 120, 32, assetManager);
+		nikolaPodium = new Podium("Nikola", 40, 47, assetManager);
+		ryanPodium = new Podium("Ryan", 120, 47, assetManager);
 		nikolaPodium.setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
@@ -121,6 +122,10 @@ public class CharacterSelectScreen implements Screen {
 				if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					game.setScreen(oldScreen);
+				}
+				if(playButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)){
+					assetManager.get("Select.wav", Sound.class).play(soundVolume);
+					game.setScreen(gameScreen);
 				}
 			}
 		if (timePassed > activeTime) {

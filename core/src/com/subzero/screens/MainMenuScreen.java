@@ -73,7 +73,7 @@ public class MainMenuScreen implements Screen {
 		this.assetManager = assetManager;
 		imageProvider = new ImageProvider();
 		gameScreen = new GameScreen(game, assetManager, this);
-		characterSelectScreen = new CharacterSelectScreen(game, assetManager, this);
+		characterSelectScreen = new CharacterSelectScreen(game, assetManager, this, gameScreen);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 
