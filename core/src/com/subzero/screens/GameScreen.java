@@ -78,7 +78,7 @@ public class GameScreen implements Screen {
 	private int highScoreValue;
 	private Runners game;
 	private Texture restart, pause, backButton;
-	private Rectangle restartBounds, pauseBounds, unpauseBounds, backButtonBounds;
+	private Rectangle restartBounds, pauseBounds, unpauseBounds, backButtonBounds, pausedBackBounds;
 	private Viewport viewport;
 	private boolean paused = false;
 	private Screen oldScreen;
@@ -145,12 +145,13 @@ public class GameScreen implements Screen {
 		platinumMedal = assetManager.get("PlatinumMedal.png", Texture.class);
 		medalHolder = blankMedal;
 		restart = assetManager.get("Restart.png", Texture.class);
-		restartBounds = new Rectangle(restartButton.x+restart.getWidth()+18, restartButton.y, restart.getWidth(), restart.getHeight());
+		restartBounds = new Rectangle(restartButton.x + restart.getWidth() + 18, restartButton.y, restart.getWidth(), restart.getHeight());
 		pause = assetManager.get("Pause.png", Texture.class);
 		pauseBounds = new Rectangle(5, imageProvider.getScreenHeight() - pause.getHeight() - 5, pause.getWidth(), pause.getHeight());
-		unpauseBounds = new Rectangle(imageProvider.getScreenWidth() / 2 - restart.getWidth() / 2, imageProvider.getScreenHeight() / 2 - restart.getHeight() / 2, restartBounds.width, restartBounds.height);
+		unpauseBounds = new Rectangle(restartBounds.x, imageProvider.getScreenHeight() / 2 - restart.getHeight() / 2, restartBounds.width, restartBounds.height);
 		backButton = assetManager.get("BackButton.png", Texture.class);
 		backButtonBounds = new Rectangle(restartButton.x, restartButton.y, backButton.getWidth(), backButton.getHeight());
+		pausedBackBounds = new Rectangle(backButtonBounds.x, imageProvider.getScreenHeight() / 2 - backButton.getHeight() / 2, backButtonBounds.width, backButtonBounds.height);
 
 		createDust();
 	}
@@ -165,6 +166,8 @@ public class GameScreen implements Screen {
 	public void show() {
 		player = new Player(20, 12, 100, assetManager);
 		player.setSoundVolume(soundVolume);
+		running = true;
+		paused = false;
 		performRestart();
 	}
 
@@ -183,12 +186,12 @@ public class GameScreen implements Screen {
 		update();
 
 		drawBackground();
-		
+
 		batch.setProjectionMatrix(camera.combined);
 
 		batch.begin();
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, 1);
-		if(running)
+		if (running)
 			mountains.update(cacti[0].getSpeed());
 		mountains.render(batch);
 		for (Cloud c : clouds)
@@ -220,12 +223,17 @@ public class GameScreen implements Screen {
 			}
 		} else {
 			if (paused) {
-				if (Gdx.input.isTouched())
+				if (Gdx.input.isTouched()) {
 					if (unpauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 						assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						running = true;
 						paused = false;
 					}
+					if (pausedBackBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						game.setScreen(oldScreen);
+					}
+				}
 			}
 		}
 	}
@@ -244,6 +252,7 @@ public class GameScreen implements Screen {
 			batch.setProjectionMatrix(camera.combined);
 			batch.begin();
 			batch.draw(restart, unpauseBounds.x, unpauseBounds.y);
+			batch.draw(backButton, pausedBackBounds.x, pausedBackBounds.y, pausedBackBounds.width, pausedBackBounds.height);
 			batch.end();
 		}
 	}
@@ -264,7 +273,7 @@ public class GameScreen implements Screen {
 
 		}
 		checkCollisions();
-		if ((!running) && (!paused)){
+		if ((!running) && (!paused)) {
 			restart();
 			toMenu();
 		}
@@ -404,8 +413,8 @@ public class GameScreen implements Screen {
 					performRestart();
 				}
 	}
-	
-	public void performRestart(){
+
+	public void performRestart() {
 		assetManager.get("Select.wav", Sound.class).play(soundVolume);
 		restartable = false;
 		restarting = true;
@@ -438,8 +447,8 @@ public class GameScreen implements Screen {
 		running = true;
 
 	}
-	
-	public void toMenu(){
+
+	public void toMenu() {
 		if ((backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
 			assetManager.get("Select.wav", Sound.class).play(soundVolume);
 			game.setScreen(oldScreen);

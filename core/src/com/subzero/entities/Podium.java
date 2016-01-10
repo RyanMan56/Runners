@@ -14,7 +14,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 public class Podium {
-	private Texture backPodium, frontPodium, character, name;
+	private Texture backPodium, frontPodium, character, name, description;
 	private float x, y;
 	private String characterName, nameText, descriptionText;
 	private boolean selected = false;
@@ -36,6 +36,7 @@ public class Podium {
 		frontPodium = assetManager.get("PodiumFront.png", Texture.class);
 		character = assetManager.get(characterName + ".png", Texture.class);
 		name = assetManager.get(characterName + "Name.png", Texture.class);
+		description = assetManager.get(characterName + "Desc.png", Texture.class);
 		this.x = x;
 		this.y = y;
 		textureRegion = new TextureRegion(assetManager.get(characterName+"-j.png", Texture.class));
@@ -56,6 +57,7 @@ public class Podium {
 		if (selected)
 			batch.draw(frontPodium, x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale);
 		batch.draw(name, x - name.getWidth() / (scale * 2) + frontPodium.getWidth(), y - name.getHeight() / scale - 2, name.getWidth() / scale, name.getHeight() / scale);
+		batch.draw(description, (int)(x - description.getWidth() / (scale*4) + frontPodium.getWidth()), (int)(y - (description.getHeight()*2) / scale), description.getWidth() / (scale*2), description.getHeight() / (scale*2));
 	}
 
 	public boolean checkSelecting(OrthographicCamera camera) {

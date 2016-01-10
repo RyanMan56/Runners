@@ -77,8 +77,8 @@ public class CharacterSelectScreen implements Screen {
 
 		createDust();
 
-		nikolaPodium = new Podium("Nikola", 40, 47, assetManager);
-		ryanPodium = new Podium("Ryan", 120, 47, assetManager);
+		nikolaPodium = new Podium("Nikola", 40, 42, assetManager);
+		ryanPodium = new Podium("Ryan", 120, 42, assetManager);
 		nikolaPodium.setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
