@@ -214,7 +214,7 @@ public class GameScreen implements Screen {
 
 	public void checkPause() {
 		if (running) {
-			if (Gdx.input.isTouched()) {
+			if (Gdx.input.justTouched()) {
 				if (pauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					paused = true;
@@ -223,7 +223,7 @@ public class GameScreen implements Screen {
 			}
 		} else {
 			if (paused) {
-				if (Gdx.input.isTouched()) {
+				if (Gdx.input.justTouched()) {
 					if (unpauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 						assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						running = true;
@@ -408,7 +408,7 @@ public class GameScreen implements Screen {
 	public void restart() {
 		if (!restarting)
 			if (restartable)
-				if ((restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
+				if ((restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.justTouched())) {
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					performRestart();
 				}
@@ -449,7 +449,7 @@ public class GameScreen implements Screen {
 	}
 
 	public void toMenu() {
-		if ((backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.isTouched())) {
+		if ((backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.justTouched())) {
 			assetManager.get("Select.wav", Sound.class).play(soundVolume);
 			game.setScreen(oldScreen);
 		}

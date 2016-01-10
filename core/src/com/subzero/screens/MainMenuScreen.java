@@ -193,14 +193,14 @@ public class MainMenuScreen implements Screen {
 				titleAlpha += 0.1f;
 		} else {
 			if (timePassed > activeTime)
-				if (Gdx.input.isTouched()) {
+				if (Gdx.input.justTouched()) {
 					touched = true;
 				}
 		}
 		if (finished) {
 			if (timePassed > activeTime){
 				activeTime = 0;
-				if (Gdx.input.isTouched()) {
+				if (Gdx.input.justTouched()) {
 					if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 						assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						game.setScreen(gameScreen);

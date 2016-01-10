@@ -118,7 +118,7 @@ public class CharacterSelectScreen implements Screen {
 		for (Cloud c : clouds)
 			c.update(speed);
 		if (timePassed > activeTime)
-			if (Gdx.input.isTouched()) {
+			if (Gdx.input.justTouched()) {
 				if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					game.setScreen(oldScreen);

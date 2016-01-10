@@ -82,7 +82,7 @@ public class Player extends Entity {
 		}
 		if (gameSpeed > 1.003)
 			if (!jumping) {
-				if (Gdx.input.isTouched()) {
+				if (Gdx.input.justTouched()) {
 					speed = 6.7f; // Determines initial jump velocity
 					assetManager.get("Jump.wav", Sound.class).play(soundVolume);
 					jumping = true;

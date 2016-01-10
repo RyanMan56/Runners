@@ -62,7 +62,7 @@ public class Podium {
 
 	public boolean checkSelecting(OrthographicCamera camera) {
 		if (!selected)
-			if (Gdx.input.isTouched()) {
+			if (Gdx.input.justTouched()) {
 				if (new Rectangle(x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale).contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					selected = true;
 					animate = true;
