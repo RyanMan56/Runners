@@ -1,6 +1,5 @@
 package com.subzero.screens;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
@@ -43,8 +42,7 @@ public class CharacterSelectScreen implements Screen {
 	private Cloud cloud;
 	private BigCloud bigCloud;
 	private Texture characterSelectText;
-	private Podium nikolaPodium, ryanPodium, p1, p2, p3;
-	private ArrayList<Podium> podiums = new ArrayList<Podium>();
+	private Podium nikolaPodium, ryanPodium;
 	private Preferences pref;
 	private String defaultCharacter;
 	private Texture backButton, playButton;
@@ -52,10 +50,6 @@ public class CharacterSelectScreen implements Screen {
 	private Screen oldScreen, gameScreen;
 	private float timePassed = 0, activeTime = 0.15f;
 	private float soundVolume = 0.5f;
-	private float leftBorder = 15;
-	private float rightBorder = 15; // Remember to add the right-most podium x to this!
-	private float scrollInitX = -1;
-	private float touchX, lastTouchX, displacement;
 
 	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen, Screen gameScreen) {
 		this.game = game;
@@ -79,20 +73,12 @@ public class CharacterSelectScreen implements Screen {
 		backButton = assetManager.get("Back.png", Texture.class);
 		backButtonBounds = new Rectangle(3, imageProvider.getScreenHeight() - backButton.getHeight() / 2 - 6f, backButton.getWidth() / 2, backButton.getHeight() / 2);
 		playButton = assetManager.get("Restart.png", Texture.class);
-		playButtonBounds = new Rectangle(imageProvider.getScreenWidth() / 2 - playButton.getWidth() / (1.5f * 2), 5, playButton.getWidth() / 1.5f, playButton.getHeight() / 1.5f);
+		playButtonBounds = new Rectangle(imageProvider.getScreenWidth()/2-playButton.getWidth()/(1.5f*2), 5, playButton.getWidth()/1.5f, playButton.getHeight()/1.5f);
 
 		createDust();
 
-		nikolaPodium = new Podium("Nikola", assetManager);
-		ryanPodium = new Podium("Ryan", assetManager);
-		p1 = new Podium("Ryan", assetManager);
-		p2 = new Podium("Ryan", assetManager);
-		p3 = new Podium("Ryan", assetManager);
-		podiums.add(nikolaPodium);
-		podiums.add(ryanPodium);
-		podiums.add(p1);
-		podiums.add(p2);
-		podiums.add(p3);
+		nikolaPodium = new Podium("Nikola", 40, 42, assetManager);
+		ryanPodium = new Podium("Ryan", 120, 42, assetManager);
 		nikolaPodium.setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
@@ -104,18 +90,12 @@ public class CharacterSelectScreen implements Screen {
 			nikolaPodium.setSelected(false);
 			ryanPodium.setSelected(true);
 		}
-		sort();
+
 	}
 
 	@Override
 	public void show() {
 		timePassed = 0;
-	}
-
-	private void sort() {
-		for (int i = 0; i < podiums.size(); i++) {
-			podiums.get(i).setPos((i + 1) * 80 - 65, 42);
-		}
 	}
 
 	@Override
@@ -137,33 +117,30 @@ public class CharacterSelectScreen implements Screen {
 		updateClouds();
 		for (Cloud c : clouds)
 			c.update(speed);
-		if (timePassed > activeTime) {
-			if (Gdx.input.justTouched()) {
+		if (timePassed > activeTime)
+			if (Gdx.input.isTouched()) {
 				if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					game.setScreen(oldScreen);
 				}
-				if (playButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+				if(playButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)){
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					game.setScreen(gameScreen);
 				}
 			}
-
+		if (timePassed > activeTime) {
 			if (nikolaPodium.checkSelecting(camera)) {
-				setOnlySelected("Nikola");
+				ryanPodium.setSelected(false);
+				defaultCharacter = "Nikola";
+				pref.putString("defaultCharacter", defaultCharacter);
+				pref.flush();
 			}
 			if (ryanPodium.checkSelecting(camera)) {
-				setOnlySelected("Ryan");
+				nikolaPodium.setSelected(false);
+				defaultCharacter = "Ryan";
+				pref.putString("defaultCharacter", defaultCharacter);
+				pref.flush();
 			}
-			if (p1.checkSelecting(camera))
-				setOnlySelected("Ryan");
-			if (p2.checkSelecting(camera))
-				setOnlySelected("Ryan");
-			if (p2.checkSelecting(camera))
-				setOnlySelected("Ryan");
-
-			scroll();
-			move();
 		}
 
 		batch.setProjectionMatrix(camera.combined);
@@ -173,48 +150,12 @@ public class CharacterSelectScreen implements Screen {
 			c.render(batch);
 		nikolaPodium.render(batch);
 		ryanPodium.render(batch);
-		p1.render(batch);
-		p2.render(batch);
-		p3.render(batch);
 		batch.draw(characterSelectText, imageProvider.getScreenWidth() / 2 - characterSelectText.getWidth() / 4, imageProvider.getScreenHeight() - characterSelectText.getHeight(), characterSelectText.getWidth() / 2, characterSelectText.getHeight() / 2);
 		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
 		batch.draw(playButton, playButtonBounds.x, playButtonBounds.y, playButtonBounds.width, playButtonBounds.height);
 
 		batch.end();
 
-	}
-
-	public void scroll() {
-		if(Gdx.input.isTouched()){
-			touchX = camera.unproject(new Vector3(Gdx.input.getX(), 0, 0)).x;
-//			scrollVel += 
-			lastTouchX = touchX;
-			
-		}
-		pointerX += pointerVel;
-		pointerVel *= 0.1f;
-		System.out.println(pointerX+" : "+pointerVel + " : "+scrollX);
-	}
-	
-	private void move(){
-		podiums.get(0).setX(pointerX);
-	}
-	
-	/**
-	 * Makes sure that this is the only selected Podium, deselects all others
-	 * and makes this the default character
-	 * 
-	 * @param name
-	 *            The name of the selected character's Podium
-	 */
-	private void setOnlySelected(String name) {
-		for (Podium podium : podiums) {
-			if (!podium.getName().equals(name))
-				podium.setSelected(false);
-		}
-		defaultCharacter = name;
-		pref.putString("defaultCharacter", defaultCharacter);
-		pref.flush();
 	}
 
 	public void createDust() {

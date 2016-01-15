@@ -29,36 +29,6 @@ public class Podium {
 	private AssetManager assetManager;
 	private float soundVolume = 0.5f;
 
-	/**
-	 * This constructor should be called only when making a Podium list. External sort function should be called on list to set positions of Podiums.
-	 * @param characterName Name of character 
-	 * @param assetManager AssetManager containing all graphic / audio files
-	 */
-	public Podium(String characterName, AssetManager assetManager) {
-		this.assetManager = assetManager;
-		this.characterName = characterName;
-		backPodium = assetManager.get("PodiumBack.png", Texture.class);
-		frontPodium = assetManager.get("PodiumFront.png", Texture.class);
-		character = assetManager.get(characterName + ".png", Texture.class);
-		name = assetManager.get(characterName + "Name.png", Texture.class);
-		nameText = characterName;
-		description = assetManager.get(characterName + "Desc.png", Texture.class);
-		textureRegion = new TextureRegion(assetManager.get(characterName+"-j.png", Texture.class));
-		animatedTextures = textureRegion.split(18, 22)[0];
-		animation = new Animation(period, animatedTextures);
-		animation.setPlayMode(PlayMode.LOOP);
-		
-		sprite = new Sprite(assetManager.get(characterName+".png", Texture.class));
-		sprite.setScale(scale);
-	}
-	
-	/**
-	 * Default constructor.
-	 * @param characterName Name of character
-	 * @param x X coordinate of Podium
-	 * @param y Y coordinate of Podium
-	 * @param assetManager AssetManager containing all graphic / audio files
-	 */
 	public Podium(String characterName, float x, float y, AssetManager assetManager) {
 		this.assetManager = assetManager;
 		this.characterName = characterName;
@@ -66,7 +36,6 @@ public class Podium {
 		frontPodium = assetManager.get("PodiumFront.png", Texture.class);
 		character = assetManager.get(characterName + ".png", Texture.class);
 		name = assetManager.get(characterName + "Name.png", Texture.class);
-		nameText = characterName;
 		description = assetManager.get(characterName + "Desc.png", Texture.class);
 		this.x = x;
 		this.y = y;
@@ -93,7 +62,7 @@ public class Podium {
 
 	public boolean checkSelecting(OrthographicCamera camera) {
 		if (!selected)
-			if (Gdx.input.justTouched()) {
+			if (Gdx.input.isTouched()) {
 				if (new Rectangle(x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale).contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					selected = true;
 					animate = true;
@@ -117,20 +86,6 @@ public class Podium {
 			}
 		}
 	}
-	
-	public void setPos(float x, float y){
-		this.x = x;
-		this.y = y;
-		sprite.setPosition(x + 6.5f * scale, y + 9.5f * scale);
-	}
-	public void setX(float x){
-		this.x = x;
-		sprite.setPosition(x + 6.5f * scale, y + 9.5f * scale);
-	}
-	public void setY(float y){
-		this.y = y;
-		sprite.setPosition(x + 6.5f * scale, y + 9.5f * scale);
-	}
 
 	public void setSelected(boolean selected) {
 		this.selected = selected;
@@ -138,10 +93,6 @@ public class Podium {
 
 	public boolean isSelected() {
 		return selected;
-	}
-	
-	public String getName(){
-		return nameText;
 	}
 
 	public float getX() {
