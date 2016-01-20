@@ -28,6 +28,7 @@ public class Podium {
 	private Sprite sprite;
 	private AssetManager assetManager;
 	private float soundVolume = 0.5f;
+	private float width, height;
 
 	/**
 	 * This constructor should be called only when making a Podium list. External sort function should be called on list to set positions of Podiums.
@@ -50,6 +51,8 @@ public class Podium {
 		
 		sprite = new Sprite(assetManager.get(characterName+".png", Texture.class));
 		sprite.setScale(scale);
+		width = sprite.getWidth();
+		height = sprite.getHeight();
 	}
 	
 	/**
@@ -150,6 +153,13 @@ public class Podium {
 
 	public float getY() {
 		return y;
+	}
+	
+	public float getWidth(){
+		return width;
+	}
+	public float getHeight(){
+		return height;
 	}
 
 }

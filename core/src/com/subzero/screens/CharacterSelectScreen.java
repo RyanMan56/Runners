@@ -54,8 +54,8 @@ public class CharacterSelectScreen implements Screen {
 	private float soundVolume = 0.5f;
 	private float leftBorder = 15;
 	private float rightBorder = 15; // Remember to add the right-most podium x to this!
-	private float scrollInitX = -1;
-	private float touchX, lastTouchX, displacement;
+	private float x1, x2;
+	private float velocity, gravity = 0.9f, displacement;
 
 	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen, Screen gameScreen) {
 		this.game = game;
@@ -105,6 +105,8 @@ public class CharacterSelectScreen implements Screen {
 			ryanPodium.setSelected(true);
 		}
 		sort();
+		displacement = podiums.get(0).getX();
+		rightBorder = imageProvider.getScreenWidth()-36-15; // TODO change right border
 	}
 
 	@Override
@@ -185,21 +187,27 @@ public class CharacterSelectScreen implements Screen {
 	}
 
 	public void scroll() {
-		if(Gdx.input.isTouched()){
-			touchX = camera.unproject(new Vector3(Gdx.input.getX(), 0, 0)).x;
-//			scrollVel += 
-			lastTouchX = touchX;
-			
+		x1 = camera.unproject(new Vector3(Gdx.input.getX(), 0, 0)).x;
+		if (Gdx.input.isTouched()) {
+
+			//			if (Math.abs(x2 - x1) > 0.2f)
+			velocity = ((x2 - x1) / Gdx.graphics.getDeltaTime()) / 59;
+			System.out.println(velocity + " : " + (x2 - x1));
+
 		}
-		pointerX += pointerVel;
-		pointerVel *= 0.1f;
-		System.out.println(pointerX+" : "+pointerVel + " : "+scrollX);
+
+		if (((displacement - velocity) > leftBorder) && ((displacement - velocity) < rightBorder)){
+			displacement -= velocity;
+			velocity *= gravity;
+		}
+		podiums.get(0).setX(displacement);
+		x2 = x1;
 	}
-	
-	private void move(){
-		podiums.get(0).setX(pointerX);
+
+	private void move() {
+		//		podiums.get(0).setX(pointerX);
 	}
-	
+
 	/**
 	 * Makes sure that this is the only selected Podium, deselects all others
 	 * and makes this the default character
