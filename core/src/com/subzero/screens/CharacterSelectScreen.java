@@ -105,7 +105,7 @@ public class CharacterSelectScreen implements Screen {
 			ryanPodium.setSelected(true);
 		}
 		sort();
-		displacement = podiums.get(0).getX();
+//		displacement = podiums.get(0).getX();
 		rightBorder = imageProvider.getScreenWidth()-36-15; // TODO change right border
 	}
 
@@ -116,8 +116,14 @@ public class CharacterSelectScreen implements Screen {
 
 	private void sort() {
 		for (int i = 0; i < podiums.size(); i++) {
-			podiums.get(i).setPos((i + 1) * 80 - 65, 42);
+			podiums.get(i).setPos((i + 1) * 80 - 65 + displacement, 42);
 		}
+		if(podiums.get(0).getX() > leftBorder)
+			displacement -= 1;
+		else if(podiums.get(podiums.size()-1).getX()+podiums.get(podiums.size()-1).getWidth() < rightBorder)
+			displacement += 1;
+			
+			
 	}
 
 	@Override
@@ -161,11 +167,10 @@ public class CharacterSelectScreen implements Screen {
 				setOnlySelected("Ryan");
 			if (p2.checkSelecting(camera))
 				setOnlySelected("Ryan");
-			if (p2.checkSelecting(camera))
+			if (p3.checkSelecting(camera))
 				setOnlySelected("Ryan");
 
 			scroll();
-			move();
 		}
 
 		batch.setProjectionMatrix(camera.combined);
@@ -189,23 +194,14 @@ public class CharacterSelectScreen implements Screen {
 	public void scroll() {
 		x1 = camera.unproject(new Vector3(Gdx.input.getX(), 0, 0)).x;
 		if (Gdx.input.isTouched()) {
-
-			//			if (Math.abs(x2 - x1) > 0.2f)
 			velocity = ((x2 - x1) / Gdx.graphics.getDeltaTime()) / 59;
-			System.out.println(velocity + " : " + (x2 - x1));
-
 		}
-
-		if (((displacement - velocity) > leftBorder) && ((displacement - velocity) < rightBorder)){
+		if((podiums.get(0).getX() - velocity < leftBorder) && (podiums.get(podiums.size()-1).getX()+podiums.get(podiums.size()-1).getWidth() - velocity > rightBorder)){
 			displacement -= velocity;
 			velocity *= gravity;
 		}
-		podiums.get(0).setX(displacement);
+		sort();
 		x2 = x1;
-	}
-
-	private void move() {
-		//		podiums.get(0).setX(pointerX);
 	}
 
 	/**
