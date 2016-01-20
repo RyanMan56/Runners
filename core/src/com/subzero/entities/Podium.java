@@ -3,6 +3,7 @@ package com.subzero.entities;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -87,6 +88,8 @@ public class Podium {
 		animation();
 		
 		batch.draw(backPodium, x, y, backPodium.getWidth() * scale, backPodium.getHeight() * scale);
+		// TODO If locked
+//		sprite.setColor(14/255f, 14/255f, 14/255f, 1);
 		sprite.draw(batch);
 		if (selected)
 			batch.draw(frontPodium, x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale);

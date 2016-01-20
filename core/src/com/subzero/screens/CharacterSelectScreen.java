@@ -116,7 +116,8 @@ public class CharacterSelectScreen implements Screen {
 
 	private void sort() {
 		for (int i = 0; i < podiums.size(); i++) {
-			podiums.get(i).setPos((i + 1) * 80 - 65 + displacement, 42);
+//			podiums.get(i).setPos((i + 1) * 80 - 65 + displacement, 42);
+			podiums.get(i).setPos((i + 1) * 100 - 85 + displacement, 42);
 		}
 		if(podiums.get(0).getX() > leftBorder)
 			displacement -= 1;
