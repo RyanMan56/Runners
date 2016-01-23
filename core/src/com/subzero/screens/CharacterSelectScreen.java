@@ -105,8 +105,8 @@ public class CharacterSelectScreen implements Screen {
 			ryanPodium.setSelected(true);
 		}
 		sort();
-//		displacement = podiums.get(0).getX();
-		rightBorder = imageProvider.getScreenWidth()-36-15; // TODO change right border
+		//		displacement = podiums.get(0).getX();
+		rightBorder = imageProvider.getScreenWidth() - 36 - 15; // TODO change right border
 	}
 
 	@Override
@@ -116,15 +116,14 @@ public class CharacterSelectScreen implements Screen {
 
 	private void sort() {
 		for (int i = 0; i < podiums.size(); i++) {
-//			podiums.get(i).setPos((i + 1) * 80 - 65 + displacement, 42);
+			//			podiums.get(i).setPos((i + 1) * 80 - 65 + displacement, 42);
 			podiums.get(i).setPos((i + 1) * 100 - 85 + displacement, 42);
 		}
-		if(podiums.get(0).getX() > leftBorder)
+		if (podiums.get(0).getX() > leftBorder)
 			displacement -= 1;
-		else if(podiums.get(podiums.size()-1).getX()+podiums.get(podiums.size()-1).getWidth() < rightBorder)
+		else if (podiums.get(podiums.size() - 1).getX() + podiums.get(podiums.size() - 1).getWidth() < rightBorder)
 			displacement += 1;
-			
-			
+
 	}
 
 	@Override
@@ -193,16 +192,22 @@ public class CharacterSelectScreen implements Screen {
 	}
 
 	public void scroll() {
-		x1 = camera.unproject(new Vector3(Gdx.input.getX(), 0, 0)).x;
 		if (Gdx.input.isTouched()) {
-			velocity = ((x2 - x1) / Gdx.graphics.getDeltaTime()) / 59;
+			x1 = camera.unproject(new Vector3(Gdx.input.getX(), 0, 0)).x;
+			if (x2 != -100)
+				velocity = ((x2 - x1) / Gdx.graphics.getDeltaTime()) / 59;
 		}
-		if((podiums.get(0).getX() - velocity < leftBorder) && (podiums.get(podiums.size()-1).getX()+podiums.get(podiums.size()-1).getWidth() - velocity > rightBorder)){
+		if ((podiums.get(0).getX() - velocity < leftBorder) && (podiums.get(podiums.size() - 1).getX() + podiums.get(podiums.size() - 1).getWidth() - velocity > rightBorder)) {
 			displacement -= velocity;
 			velocity *= gravity;
+			if (x2 != -100)
+				System.out.println(x2);
 		}
 		sort();
-		x2 = x1;
+		if (Gdx.input.isTouched())
+			x2 = x1;
+		else
+			x2 = -100;
 	}
 
 	/**
