@@ -1,6 +1,7 @@
 package com.subzero.entities;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
@@ -15,7 +16,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 public class Podium {
-	private Texture backPodium, frontPodium, character, name, description;
+	private Texture backPodium, frontPodium, character, name, description, value;
 	private float x, y;
 	private String characterName, nameText, descriptionText;
 	private boolean selected = false;
@@ -30,110 +31,152 @@ public class Podium {
 	private AssetManager assetManager;
 	private float soundVolume = 0.5f;
 	private float width, height;
+	private Preferences pref;
+	private boolean isUnlocked = false, lockDisplayed = true, isComingSoon = false;
 
 	/**
-	 * This constructor should be called only when making a Podium list. External sort function should be called on list to set positions of Podiums.
-	 * @param characterName Name of character 
-	 * @param assetManager AssetManager containing all graphic / audio files
+	 * Should be called when making a Podium list. External sort function should
+	 * be called on list to set positions of Podiums.
+	 * 
+	 * @param characterName
+	 *            Name of character
+	 * @param assetManager
+	 *            AssetManager containing all graphic / audio files
 	 */
 	public Podium(String characterName, AssetManager assetManager) {
 		this.assetManager = assetManager;
 		this.characterName = characterName;
 		backPodium = assetManager.get("PodiumBack.png", Texture.class);
 		frontPodium = assetManager.get("PodiumFront.png", Texture.class);
+		pref = Gdx.app.getPreferences("com.subzero.runners");
+		isUnlocked = pref.getBoolean(characterName, false);
+
+		if (characterName.equals("ComingSoon"))
+			isComingSoon = true;
 		character = assetManager.get(characterName + ".png", Texture.class);
-		name = assetManager.get(characterName + "Name.png", Texture.class);
 		nameText = characterName;
-		description = assetManager.get(characterName + "Desc.png", Texture.class);
-		textureRegion = new TextureRegion(assetManager.get(characterName+"-j.png", Texture.class));
-		animatedTextures = textureRegion.split(18, 22)[0];
-		animation = new Animation(period, animatedTextures);
-		animation.setPlayMode(PlayMode.LOOP);
-		
-		sprite = new Sprite(assetManager.get(characterName+".png", Texture.class));
+		if (isUnlocked && (!isComingSoon)) {
+			lockDisplayed = false;
+			name = assetManager.get(characterName + "Name.png", Texture.class);
+			description = assetManager.get(characterName + "Desc.png", Texture.class);
+			textureRegion = new TextureRegion(assetManager.get(characterName + "-j.png", Texture.class));
+			animatedTextures = textureRegion.split(18, 22)[0];
+			animation = new Animation(period, animatedTextures);
+			animation.setPlayMode(PlayMode.LOOP);
+		}
+		if ((!isUnlocked) || isComingSoon) {
+			name = assetManager.get("LockedName.png", Texture.class);
+			description = assetManager.get("LockedDesc.png", Texture.class);
+			if (nameText.equals("Ryan"))
+				value = assetManager.get("10.png", Texture.class);
+			if (nameText.equals("Ash"))
+				value = assetManager.get("20.png", Texture.class);
+			if (nameText.equals("ComingSoon")) {
+				name = assetManager.get("ComingSoonName.png", Texture.class);
+				description = assetManager.get("ComingSoonDesc.png", Texture.class);
+			}
+		}
+
+		sprite = new Sprite(assetManager.get(characterName + ".png", Texture.class));
 		sprite.setScale(scale);
 		width = sprite.getWidth();
 		height = sprite.getHeight();
 	}
-	
-	/**
-	 * Default constructor.
-	 * @param characterName Name of character
-	 * @param x X coordinate of Podium
-	 * @param y Y coordinate of Podium
-	 * @param assetManager AssetManager containing all graphic / audio files
-	 */
-	public Podium(String characterName, float x, float y, AssetManager assetManager) {
-		this.assetManager = assetManager;
-		this.characterName = characterName;
-		backPodium = assetManager.get("PodiumBack.png", Texture.class);
-		frontPodium = assetManager.get("PodiumFront.png", Texture.class);
-		character = assetManager.get(characterName + ".png", Texture.class);
-		name = assetManager.get(characterName + "Name.png", Texture.class);
-		nameText = characterName;
-		description = assetManager.get(characterName + "Desc.png", Texture.class);
-		this.x = x;
-		this.y = y;
-		textureRegion = new TextureRegion(assetManager.get(characterName+"-j.png", Texture.class));
-		animatedTextures = textureRegion.split(18, 22)[0];
-		animation = new Animation(period, animatedTextures);
-		animation.setPlayMode(PlayMode.LOOP);
-		
-		sprite = new Sprite(assetManager.get(characterName+".png", Texture.class));
-		sprite.setPosition(x + 6.5f * scale, y + 9.5f * scale);
-		sprite.setScale(scale);
-	}
 
 	public void render(SpriteBatch batch) {
-		animation();
-		
+		if (isUnlocked)
+			animation();
+
 		batch.draw(backPodium, x, y, backPodium.getWidth() * scale, backPodium.getHeight() * scale);
-		// TODO If locked
-//		sprite.setColor(14/255f, 14/255f, 14/255f, 1);
+		if (!isUnlocked) {
+			//			sprite.setColor(14 / 255f, 14 / 255f, 14 / 255f, 1);
+			sprite.setColor(5 / 255f, 5 / 255f, 5 / 255f, 1);
+		}
 		sprite.draw(batch);
 		if (selected)
 			batch.draw(frontPodium, x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale);
 		batch.draw(name, x - name.getWidth() / (scale * 2) + frontPodium.getWidth(), y - name.getHeight() / scale - 2, name.getWidth() / scale, name.getHeight() / scale);
-		batch.draw(description, (int)(x - description.getWidth() / (scale*4) + frontPodium.getWidth()), (int)(y - (description.getHeight()*2) / scale), description.getWidth() / (scale*2), description.getHeight() / (scale*2));
+		if (isUnlocked)
+			batch.draw(description, (int) (x - description.getWidth() / (scale * 4) + frontPodium.getWidth()), (int) (y - (description.getHeight() * 2) / scale), description.getWidth() / (scale * 2), description.getHeight() / (scale * 2));
+		else
+			batch.draw(description, (int) (x - value.getWidth() / (scale * 4) - description.getWidth() / (scale * 4) + frontPodium.getWidth()), (int) (y - (description.getHeight() * 2) / scale), description.getWidth() / (scale * 2), description.getHeight() / (scale * 2));
+		if (!isUnlocked)
+			batch.draw(value, (int) ((x - value.getWidth() / (scale * 4) - description.getWidth() / (scale * 4) + frontPodium.getWidth()) + description.getWidth() / (scale * 2) + 4), (int) (y - (description.getHeight() * 2) / scale), value.getWidth() / (scale * 2), value.getHeight() / (scale * 2));
+	}
+
+	public void checkPrefs() {
+		isUnlocked = pref.getBoolean(characterName, false);
+		if (!isComingSoon)
+			if (isUnlocked)
+				if (lockDisplayed) {
+
+					name = assetManager.get(characterName + "Name.png", Texture.class);
+					description = assetManager.get(characterName + "Desc.png", Texture.class);
+					textureRegion = new TextureRegion(assetManager.get(characterName + "-j.png", Texture.class));
+					animatedTextures = textureRegion.split(18, 22)[0];
+					animation = new Animation(period, animatedTextures);
+					animation.setPlayMode(PlayMode.LOOP);
+
+					sprite = new Sprite(assetManager.get(characterName + ".png", Texture.class));
+					sprite.setScale(scale);
+					width = sprite.getWidth();
+					height = sprite.getHeight();
+
+					lockDisplayed = false;
+				}
+
 	}
 
 	public boolean checkSelecting(OrthographicCamera camera) {
-		if (!selected)
-			if (Gdx.input.justTouched()) {
-				if (new Rectangle(x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale).contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-					selected = true;
-					animate = true;
-					assetManager.get("Select.wav", Sound.class).play(soundVolume);
-					return true;
-				}
-			}
+		if (isUnlocked) {
+			if (!isComingSoon)
+				if (!selected)
+					if (Gdx.input.justTouched()) {
+						if (new Rectangle(x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale).contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+							selected = true;
+							animate = true;
+							assetManager.get("Select.wav", Sound.class).play(soundVolume);
+							return true;
+						}
+					}
+		}
 		return false;
 	}
-	
-	public void animation(){
-		if(animate){
+
+	public void animation() {
+		if (animate) {
 			elapsedTime += Gdx.graphics.getDeltaTime();
 			sprite.setRegion(animation.getKeyFrame(elapsedTime, false));
-			if(elapsedTime >= period*4f){
+			if (elapsedTime >= period * 4f) {
 				elapsedTime = 0;
-				sprite = new Sprite(assetManager.get(characterName+".png", Texture.class));
+				sprite = new Sprite(assetManager.get(characterName + ".png", Texture.class));
 				sprite.setPosition(x + 6.5f * scale, y + 9.5f * scale);
 				sprite.setScale(scale);
 				animate = false;
 			}
 		}
 	}
-	
-	public void setPos(float x, float y){
+
+	public void setAnimate(boolean animate) {
+		this.animate = animate;
+	}
+
+	public void setScale(float scale) {
+		this.scale = scale;
+	}
+
+	public void setPos(float x, float y) {
 		this.x = x;
 		this.y = y;
 		sprite.setPosition(x + 6.5f * scale, y + 9.5f * scale);
 	}
-	public void setX(float x){
+
+	public void setX(float x) {
 		this.x = x;
 		sprite.setPosition(x + 6.5f * scale, y + 9.5f * scale);
 	}
-	public void setY(float y){
+
+	public void setY(float y) {
 		this.y = y;
 		sprite.setPosition(x + 6.5f * scale, y + 9.5f * scale);
 	}
@@ -145,8 +188,8 @@ public class Podium {
 	public boolean isSelected() {
 		return selected;
 	}
-	
-	public String getName(){
+
+	public String getName() {
 		return nameText;
 	}
 
@@ -157,11 +200,12 @@ public class Podium {
 	public float getY() {
 		return y;
 	}
-	
-	public float getWidth(){
+
+	public float getWidth() {
 		return width;
 	}
-	public float getHeight(){
+
+	public float getHeight() {
 		return height;
 	}
 

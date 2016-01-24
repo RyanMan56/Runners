@@ -72,10 +72,11 @@ public class MainMenuScreen implements Screen {
 		this.game = game;
 		this.assetManager = assetManager;
 		imageProvider = new ImageProvider();
-		gameScreen = new GameScreen(game, assetManager, this);
-		characterSelectScreen = new CharacterSelectScreen(game, assetManager, this, gameScreen);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
+		initCharacters();
+		gameScreen = new GameScreen(game, assetManager, this);
+		characterSelectScreen = new CharacterSelectScreen(game, assetManager, this, gameScreen);
 
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
@@ -198,7 +199,7 @@ public class MainMenuScreen implements Screen {
 				}
 		}
 		if (finished) {
-			if (timePassed > activeTime){
+			if (timePassed > activeTime) {
 				activeTime = 0;
 				if (Gdx.input.justTouched()) {
 					if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
@@ -274,6 +275,27 @@ public class MainMenuScreen implements Screen {
 		for (int i = 0; i < dust.length; i++) {
 			shapeRenderer.rect(dust[i].x, dust[i].y, dust[i].width, dust[i].height);
 
+		}
+	}
+	
+	private void initCharacters(){
+		if (!pref.getBoolean("Nikola", false)) {
+			pref.putBoolean("Nikola", true);
+			pref.flush();
+		}
+		if (!pref.getBoolean("ComingSoon", false)) {
+			pref.putBoolean("ComingSoon", true);
+			pref.flush();
+		}
+		
+		initCharacter("Ryan");
+		initCharacter("Ash");
+	}
+	
+	private void initCharacter(String name){
+		if (!pref.getBoolean(name, false)) {
+			pref.putBoolean(name, false);
+			pref.flush();
 		}
 	}
 

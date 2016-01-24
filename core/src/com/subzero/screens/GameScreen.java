@@ -28,6 +28,7 @@ import com.subzero.entities.Cactus;
 import com.subzero.entities.Cloud;
 import com.subzero.entities.Entity;
 import com.subzero.entities.Player;
+import com.subzero.entities.Podium;
 import com.subzero.entities.SmallCactus;
 import com.subzero.entities.ThreeSmallCactus;
 import com.subzero.entities.TwoSmallCactus;
@@ -82,6 +83,10 @@ public class GameScreen implements Screen {
 	private Viewport viewport;
 	private boolean paused = false;
 	private Screen oldScreen;
+	private Texture characterUnlocked;
+	private Podium unlockPodium;
+	private boolean shouldDrawCharacterUnlock = false;
+	private long unlockTime;
 
 	public GameScreen(Runners game, AssetManager assetManager, Screen screen) {
 		this.game = game;
@@ -154,6 +159,8 @@ public class GameScreen implements Screen {
 		pausedBackBounds = new Rectangle(backButtonBounds.x, imageProvider.getScreenHeight() / 2 - backButton.getHeight() / 2, backButtonBounds.width, backButtonBounds.height);
 
 		createDust();
+
+		characterUnlocked = assetManager.get("CharacterUnlocked.png", Texture.class);
 	}
 
 	public void createDust() {
@@ -186,7 +193,7 @@ public class GameScreen implements Screen {
 		update();
 
 		drawBackground();
-
+		
 		batch.setProjectionMatrix(camera.combined);
 
 		batch.begin();
@@ -285,37 +292,90 @@ public class GameScreen implements Screen {
 	}
 
 	public void gameOver() {
+		checkUnlocks();
 		if (cactusScore > highScoreValue) {
 			pref.putInteger("score", cactusScore);
 			highScoreValue = cactusScore;
 			pref.flush();
 		}
+		
+		if(shouldDrawCharacterUnlock){
+			
+			
+		}else{
+			gameOverText.draw(batch, 1);
+			if (gameOverText.getColor().a < 0.5f) {
+				gameOverText.setPosition(gameOverText.getX(), gameOverText.getY() + 0.5f);
+			}
+			if ((gameOverText.getColor().a > 0.5f) && (gameOverText.getColor().a < 1)) {
+				gameOverText.setPosition(gameOverText.getX(), gameOverText.getY() - 0.5f);
+			}
+			if (gameOverText.getColor().a < 1) {
+				gameOverText.setColor(gameOverText.getColor().r, gameOverText.getColor().g, gameOverText.getColor().b, gameOverText.getColor().a += 0.05f);
+			}
+			if (endSlate.y < startEndSlateY) {
+				endSlate.y++;
+				endSlateBorder.y++;
+				restartButton.y++;
+				restartBounds.y++;
+				backButtonBounds.y++;
+				endSlateAlpha = endSlate.y / (startEndSlateY);
+			}
+			if (endSlateAlpha < 1)
+				restartable = false;
+			else
+				restartable = true;
+		}
+	}
 
-		gameOverText.draw(batch, 1);
-		if (gameOverText.getColor().a < 0.5f) {
-			gameOverText.setPosition(gameOverText.getX(), gameOverText.getY() + 0.5f);
+	public void checkUnlocks() {
+		if (cactusScore >= 10)
+			unlock("Ryan");
+		if (cactusScore >= 20)
+			unlock("Ash");
+
+	}
+
+	public void unlock(String name) {
+		if (!pref.getBoolean(name, false)) {
+			pref.putBoolean(name, true);
+			pref.flush();
+
+			setupUnlockMessage(name);
 		}
-		if ((gameOverText.getColor().a > 0.5f) && (gameOverText.getColor().a < 1)) {
-			gameOverText.setPosition(gameOverText.getX(), gameOverText.getY() - 0.5f);
-		}
-		if (gameOverText.getColor().a < 1) {
-			gameOverText.setColor(gameOverText.getColor().r, gameOverText.getColor().g, gameOverText.getColor().b, gameOverText.getColor().a += 0.05f);
-		}
-		if (endSlate.y < startEndSlateY) {
-			endSlate.y++;
-			endSlateBorder.y++;
-			restartButton.y++;
-			restartBounds.y++;
-			backButtonBounds.y++;
-			//			gameOverScore.moveBy(0, 1);
-			//			highScore.moveBy(0, 1);
-			endSlateAlpha = endSlate.y / (startEndSlateY);
-			//			System.out.println(endSlateAlpha);
-		}
-		if (endSlateAlpha < 1)
-			restartable = false;
-		else
-			restartable = true;
+	}
+
+	public void setupUnlockMessage(String name) {
+		unlockPodium = new Podium(name, assetManager);
+		unlockPodium.setPos(88, 41);
+		unlockPodium.setAnimate(true);
+		unlockPodium.setSelected(true);
+
+		shouldDrawCharacterUnlock = true;
+		assetManager.get("Yay.wav", Sound.class).play(soundVolume);
+		unlockTime = System.currentTimeMillis();
+	}
+
+	public void displayUnlockMessage(SpriteBatch batch) {
+		Gdx.gl.glEnable(GL10.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		shapeRenderer.setProjectionMatrix(camera.combined);
+		shapeRenderer.begin(ShapeType.Filled);
+		shapeRenderer.setColor(0f, 0f, 0f, 0.3f);
+		shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
+		shapeRenderer.end();
+		Gdx.gl.glDisable(GL10.GL_BLEND);
+		
+		batch.setProjectionMatrix(camera.combined);
+		batch.begin();
+		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, 1);
+		unlockPodium.render(batch);
+		batch.draw(characterUnlocked, 10, imageProvider.getScreenHeight()-19, characterUnlocked.getWidth()/2, characterUnlocked.getHeight()/2);
+		batch.end();
+		
+		if(System.currentTimeMillis()-unlockTime > 1000)
+			if(Gdx.input.isTouched())
+				shouldDrawCharacterUnlock = false;
 	}
 
 	public void gameOverShape() {
@@ -390,6 +450,7 @@ public class GameScreen implements Screen {
 			alphaValue = 0;
 		if (endSlateAlpha > 1)
 			alphaValue = 1;
+		
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, alphaValue);
 		text.setPosition(imageProvider.getScreenWidth() / 2 - scorePadding, imageProvider.getScreenHeight() - 20);
 		batch.draw(medal, endSlate.x + 10, endSlate.y + endSlate.height - medal.getHeight() - 4);
@@ -403,6 +464,10 @@ public class GameScreen implements Screen {
 		batch.draw(restart, restartBounds.x, restartBounds.y, restartBounds.width, restartBounds.height);
 		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
 		batch.end();
+		
+		if(shouldDrawCharacterUnlock){
+			displayUnlockMessage(batch);
+		}
 	}
 
 	public void restart() {

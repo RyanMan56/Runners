@@ -90,20 +90,21 @@ public class CharacterSelectScreen implements Screen {
 		p3 = new Podium("Ryan", assetManager);
 		podiums.add(nikolaPodium);
 		podiums.add(ryanPodium);
-		podiums.add(p1);
-		podiums.add(p2);
-		podiums.add(p3);
+		podiums.add(new Podium("ComingSoon", assetManager));
+//		podiums.add(p1);
+//		podiums.add(p2);
+//		podiums.add(p3);
 		nikolaPodium.setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 
-		if (defaultCharacter.equals("Nikola")) {
-			nikolaPodium.setSelected(true);
-			ryanPodium.setSelected(false);
-		} else if (defaultCharacter.equals("Ryan")) {
-			nikolaPodium.setSelected(false);
-			ryanPodium.setSelected(true);
-		}
+//		if (defaultCharacter.equals("Nikola")) {
+//			nikolaPodium.setSelected(true);
+//			ryanPodium.setSelected(false);
+//		} else if (defaultCharacter.equals("Ryan")) {
+//			nikolaPodium.setSelected(false);
+//			ryanPodium.setSelected(true);
+//		}
 		sort();
 		//		displacement = podiums.get(0).getX();
 		rightBorder = imageProvider.getScreenWidth() - 36 - 15; // TODO change right border
@@ -112,12 +113,14 @@ public class CharacterSelectScreen implements Screen {
 	@Override
 	public void show() {
 		timePassed = 0;
+		for(Podium podium : podiums)
+			podium.checkPrefs();
 	}
 
 	private void sort() {
 		for (int i = 0; i < podiums.size(); i++) {
 			//			podiums.get(i).setPos((i + 1) * 80 - 65 + displacement, 42);
-			podiums.get(i).setPos((i + 1) * 100 - 85 + displacement, 42);
+			podiums.get(i).setPos((i + 1) * 100 - 85 + displacement, 41);
 		}
 		if (podiums.get(0).getX() > leftBorder)
 			displacement -= 1;
@@ -157,32 +160,39 @@ public class CharacterSelectScreen implements Screen {
 				}
 			}
 
-			if (nikolaPodium.checkSelecting(camera)) {
-				setOnlySelected("Nikola");
+//			if (nikolaPodium.checkSelecting(camera)) {
+//				setOnlySelected("Nikola");
+//			}
+//			if (ryanPodium.checkSelecting(camera)) {
+//				setOnlySelected("Ryan");
+//			}
+//			if (p1.checkSelecting(camera))
+//				setOnlySelected("Ryan");
+//			if (p2.checkSelecting(camera))
+//				setOnlySelected("Ryan");
+//			if (p3.checkSelecting(camera))
+//				setOnlySelected("Ryan");
+			for(Podium podium : podiums){
+				if(podium.checkSelecting(camera))
+					setOnlySelected(podium.getName());
 			}
-			if (ryanPodium.checkSelecting(camera)) {
-				setOnlySelected("Ryan");
-			}
-			if (p1.checkSelecting(camera))
-				setOnlySelected("Ryan");
-			if (p2.checkSelecting(camera))
-				setOnlySelected("Ryan");
-			if (p3.checkSelecting(camera))
-				setOnlySelected("Ryan");
+				
 
 			scroll();
-		}
+		}                                                                      
 
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		mountains.render(batch);
 		for (Cloud c : clouds)
 			c.render(batch);
-		nikolaPodium.render(batch);
-		ryanPodium.render(batch);
-		p1.render(batch);
-		p2.render(batch);
-		p3.render(batch);
+		for(Podium podium : podiums)
+			podium.render(batch);
+//		nikolaPodium.render(batch);
+//		ryanPodium.render(batch);
+//		p1.render(batch);
+//		p2.render(batch);
+//		p3.render(batch);
 		batch.draw(characterSelectText, imageProvider.getScreenWidth() / 2 - characterSelectText.getWidth() / 4, imageProvider.getScreenHeight() - characterSelectText.getHeight(), characterSelectText.getWidth() / 2, characterSelectText.getHeight() / 2);
 		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
 		batch.draw(playButton, playButtonBounds.x, playButtonBounds.y, playButtonBounds.width, playButtonBounds.height);

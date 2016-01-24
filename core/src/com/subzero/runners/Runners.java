@@ -53,13 +53,22 @@ public class Runners extends Game {
 		assetManager.load("Ryan-j.png", Texture.class);
 		assetManager.load("RyanName.png", Texture.class);
 		assetManager.load("RyanDesc.png", Texture.class);
+		assetManager.load("LockedName.png", Texture.class);
+		assetManager.load("LockedDesc.png", Texture.class);
+		assetManager.load("ComingSoon.png", Texture.class);
+		assetManager.load("ComingSoonName.png", Texture.class);
+		assetManager.load("ComingSoonDesc.png", Texture.class);
 		assetManager.load("Back.png", Texture.class);
 		assetManager.load("BackButton.png", Texture.class);
+		assetManager.load("10.png", Texture.class);
+		assetManager.load("20.png", Texture.class);
+		assetManager.load("CharacterUnlocked.png", Texture.class);
 		
 		assetManager.load("Jump.wav", Sound.class);
 		assetManager.load("Hit.wav", Sound.class);
 		assetManager.load("Select.wav", Sound.class);
 		assetManager.load("Point.wav", Sound.class);
+		assetManager.load("Yay.wav", Sound.class);
 	}
 
 	@Override
