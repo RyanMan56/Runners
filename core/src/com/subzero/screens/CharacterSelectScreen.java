@@ -83,30 +83,15 @@ public class CharacterSelectScreen implements Screen {
 
 		createDust();
 
-		nikolaPodium = new Podium("Nikola", assetManager);
-		ryanPodium = new Podium("Ryan", assetManager);
-		p1 = new Podium("Ryan", assetManager);
-		p2 = new Podium("Ryan", assetManager);
-		p3 = new Podium("Ryan", assetManager);
-		podiums.add(nikolaPodium);
-		podiums.add(ryanPodium);
+		podiums.add(new Podium("Nikola", assetManager));
+		podiums.add(new Podium("Ryan", assetManager));
+		podiums.add(new Podium("Ash", assetManager));
 		podiums.add(new Podium("ComingSoon", assetManager));
-//		podiums.add(p1);
-//		podiums.add(p2);
-//		podiums.add(p3);
-		nikolaPodium.setSelected(true);
+		podiums.get(0).setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 
-//		if (defaultCharacter.equals("Nikola")) {
-//			nikolaPodium.setSelected(true);
-//			ryanPodium.setSelected(false);
-//		} else if (defaultCharacter.equals("Ryan")) {
-//			nikolaPodium.setSelected(false);
-//			ryanPodium.setSelected(true);
-//		}
 		sort();
-		//		displacement = podiums.get(0).getX();
 		rightBorder = imageProvider.getScreenWidth() - 36 - 15; // TODO change right border
 	}
 
@@ -119,7 +104,6 @@ public class CharacterSelectScreen implements Screen {
 
 	private void sort() {
 		for (int i = 0; i < podiums.size(); i++) {
-			//			podiums.get(i).setPos((i + 1) * 80 - 65 + displacement, 42);
 			podiums.get(i).setPos((i + 1) * 100 - 85 + displacement, 41);
 		}
 		if (podiums.get(0).getX() > leftBorder)

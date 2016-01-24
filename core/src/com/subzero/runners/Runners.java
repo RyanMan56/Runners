@@ -53,6 +53,11 @@ public class Runners extends Game {
 		assetManager.load("Ryan-j.png", Texture.class);
 		assetManager.load("RyanName.png", Texture.class);
 		assetManager.load("RyanDesc.png", Texture.class);
+		assetManager.load("Ash.png", Texture.class);
+		assetManager.load("Ash-w.png", Texture.class);
+		assetManager.load("Ash-j.png", Texture.class);
+		assetManager.load("AshName.png", Texture.class);
+		assetManager.load("AshDesc.png", Texture.class);
 		assetManager.load("LockedName.png", Texture.class);
 		assetManager.load("LockedDesc.png", Texture.class);
 		assetManager.load("ComingSoon.png", Texture.class);
