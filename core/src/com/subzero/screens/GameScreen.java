@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.GL20;
@@ -74,7 +75,7 @@ public class GameScreen implements Screen {
 	private float alphaValue;
 	private boolean restartable = false;
 	private boolean canPlayHitSound = true;
-	private float soundVolume = 0.5f;
+	private float soundVolume = 0.05f, musicVolume = 1f;
 	private Preferences pref;
 	private int highScoreValue;
 	private Runners game;
@@ -87,6 +88,7 @@ public class GameScreen implements Screen {
 	private Podium unlockPodium;
 	private boolean shouldDrawCharacterUnlock = false;
 	private long unlockTime;
+	private Music music;
 
 	public GameScreen(Runners game, AssetManager assetManager, Screen screen) {
 		this.game = game;
@@ -161,6 +163,10 @@ public class GameScreen implements Screen {
 		createDust();
 
 		characterUnlocked = assetManager.get("CharacterUnlocked.png", Texture.class);
+		
+		music = assetManager.get("250754__cebuana__one.wav", Music.class);
+		music.setVolume(musicVolume);
+		music.setLooping(true);
 	}
 
 	public void createDust() {
@@ -176,6 +182,7 @@ public class GameScreen implements Screen {
 		running = true;
 		paused = false;
 		performRestart();
+		music.play();
 	}
 
 	@Override
@@ -238,6 +245,7 @@ public class GameScreen implements Screen {
 					}
 					if (pausedBackBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						music.pause();
 						game.setScreen(oldScreen);
 					}
 				}
@@ -268,6 +276,13 @@ public class GameScreen implements Screen {
 		checkPause();
 		updateScore();
 		updateSpeed();
+		
+		if(paused){
+			music.pause();
+		}else{
+			music.play();
+		}
+		
 		//		drawBackground();
 		if (running) {
 			updateClouds();
@@ -333,6 +348,10 @@ public class GameScreen implements Screen {
 			unlock("Ryan");
 		if (cactusScore >= 20)
 			unlock("Ash");
+		if(cactusScore >= 30)
+			unlock("Rob");
+		if(cactusScore >= 40)
+			unlock("Xorp");
 
 	}
 
@@ -518,6 +537,7 @@ public class GameScreen implements Screen {
 	public void toMenu() {
 		if ((backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.justTouched())) {
 			assetManager.get("Select.wav", Sound.class).play(soundVolume);
+			music.pause();
 			game.setScreen(oldScreen);
 		}
 	}
@@ -736,8 +756,7 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
+		music.dispose();
 	}
 
 }

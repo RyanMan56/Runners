@@ -3,6 +3,7 @@ package com.subzero.runners;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.subzero.screens.GameScreen;
@@ -58,6 +59,16 @@ public class Runners extends Game {
 		assetManager.load("Ash-j.png", Texture.class);
 		assetManager.load("AshName.png", Texture.class);
 		assetManager.load("AshDesc.png", Texture.class);
+		assetManager.load("Rob.png", Texture.class);
+		assetManager.load("Rob-w.png", Texture.class);
+		assetManager.load("Rob-j.png", Texture.class);
+		assetManager.load("RobName.png", Texture.class);
+		assetManager.load("RobDesc.png", Texture.class);
+		assetManager.load("Xorp.png", Texture.class);
+		assetManager.load("Xorp-w.png", Texture.class);
+		assetManager.load("Xorp-j.png", Texture.class);
+		assetManager.load("XorpName.png", Texture.class);
+		assetManager.load("XorpDesc.png", Texture.class);
 		assetManager.load("LockedName.png", Texture.class);
 		assetManager.load("LockedDesc.png", Texture.class);
 		assetManager.load("ComingSoon.png", Texture.class);
@@ -67,6 +78,8 @@ public class Runners extends Game {
 		assetManager.load("BackButton.png", Texture.class);
 		assetManager.load("10.png", Texture.class);
 		assetManager.load("20.png", Texture.class);
+		assetManager.load("30.png", Texture.class);
+		assetManager.load("40.png", Texture.class);
 		assetManager.load("CharacterUnlocked.png", Texture.class);
 		
 		assetManager.load("Jump.wav", Sound.class);
@@ -74,6 +87,8 @@ public class Runners extends Game {
 		assetManager.load("Select.wav", Sound.class);
 		assetManager.load("Point.wav", Sound.class);
 		assetManager.load("Yay.wav", Sound.class);
+		
+		assetManager.load("250754__cebuana__one.wav", Music.class);
 	}
 
 	@Override

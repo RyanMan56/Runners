@@ -71,6 +71,10 @@ public class Podium {
 				value = assetManager.get("10.png", Texture.class);
 			if (nameText.equals("Ash"))
 				value = assetManager.get("20.png", Texture.class);
+			if(nameText.equalsIgnoreCase("Rob"))
+				value = assetManager.get("30.png", Texture.class);
+			if(nameText.equalsIgnoreCase("Xorp"))
+				value = assetManager.get("40.png", Texture.class);
 			if (nameText.equals("ComingSoon")) {
 				name = assetManager.get("ComingSoonName.png", Texture.class);
 				description = assetManager.get("ComingSoonDesc.png", Texture.class);
@@ -89,7 +93,6 @@ public class Podium {
 
 		batch.draw(backPodium, x, y, backPodium.getWidth() * scale, backPodium.getHeight() * scale);
 		if (!isUnlocked) {
-			//			sprite.setColor(14 / 255f, 14 / 255f, 14 / 255f, 1);
 			sprite.setColor(5 / 255f, 5 / 255f, 5 / 255f, 1);
 		}
 		sprite.draw(batch);

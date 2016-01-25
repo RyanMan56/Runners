@@ -115,7 +115,6 @@ public class MainMenuScreen implements Screen {
 		titleHeight = title.getHeight() * 1.2f;//titleWidth / (152 / 18f);
 
 		createDust();
-		System.out.println("Constructor");
 	}
 
 	public void createDust() {
@@ -129,7 +128,6 @@ public class MainMenuScreen implements Screen {
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 		bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
 		timePassed = 0;
-		System.out.println("Show");
 	}
 
 	@Override
@@ -290,6 +288,8 @@ public class MainMenuScreen implements Screen {
 		
 		initCharacter("Ryan");
 		initCharacter("Ash");
+		initCharacter("Rob");
+		initCharacter("Xorp");
 	}
 	
 	private void initCharacter(String name){

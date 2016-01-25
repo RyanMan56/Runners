@@ -86,6 +86,8 @@ public class CharacterSelectScreen implements Screen {
 		podiums.add(new Podium("Nikola", assetManager));
 		podiums.add(new Podium("Ryan", assetManager));
 		podiums.add(new Podium("Ash", assetManager));
+		podiums.add(new Podium("Rob", assetManager));
+		podiums.add(new Podium("Xorp", assetManager));
 		podiums.add(new Podium("ComingSoon", assetManager));
 		podiums.get(0).setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
@@ -144,18 +146,6 @@ public class CharacterSelectScreen implements Screen {
 				}
 			}
 
-//			if (nikolaPodium.checkSelecting(camera)) {
-//				setOnlySelected("Nikola");
-//			}
-//			if (ryanPodium.checkSelecting(camera)) {
-//				setOnlySelected("Ryan");
-//			}
-//			if (p1.checkSelecting(camera))
-//				setOnlySelected("Ryan");
-//			if (p2.checkSelecting(camera))
-//				setOnlySelected("Ryan");
-//			if (p3.checkSelecting(camera))
-//				setOnlySelected("Ryan");
 			for(Podium podium : podiums){
 				if(podium.checkSelecting(camera))
 					setOnlySelected(podium.getName());
@@ -172,11 +162,6 @@ public class CharacterSelectScreen implements Screen {
 			c.render(batch);
 		for(Podium podium : podiums)
 			podium.render(batch);
-//		nikolaPodium.render(batch);
-//		ryanPodium.render(batch);
-//		p1.render(batch);
-//		p2.render(batch);
-//		p3.render(batch);
 		batch.draw(characterSelectText, imageProvider.getScreenWidth() / 2 - characterSelectText.getWidth() / 4, imageProvider.getScreenHeight() - characterSelectText.getHeight(), characterSelectText.getWidth() / 2, characterSelectText.getHeight() / 2);
 		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
 		batch.draw(playButton, playButtonBounds.x, playButtonBounds.y, playButtonBounds.width, playButtonBounds.height);
@@ -194,8 +179,6 @@ public class CharacterSelectScreen implements Screen {
 		if ((podiums.get(0).getX() - velocity < leftBorder) && (podiums.get(podiums.size() - 1).getX() + podiums.get(podiums.size() - 1).getWidth() - velocity > rightBorder)) {
 			displacement -= velocity;
 			velocity *= gravity;
-			if (x2 != -100)
-				System.out.println(x2);
 		}
 		sort();
 		if (Gdx.input.isTouched())
