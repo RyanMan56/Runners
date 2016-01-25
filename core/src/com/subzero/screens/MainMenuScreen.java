@@ -66,7 +66,7 @@ public class MainMenuScreen implements Screen {
 	private Preferences pref;
 	private String defaultCharacter;
 	private float timePassed = 0, initActiveTime = 0.15f, activeTime;
-	private float soundVolume = 0.5f;
+	private float soundVolume = 0.05f;
 
 	public MainMenuScreen(Runners game, AssetManager assetManager) {
 		this.game = game;

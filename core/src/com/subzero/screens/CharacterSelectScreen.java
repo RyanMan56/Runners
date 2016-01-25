@@ -51,7 +51,7 @@ public class CharacterSelectScreen implements Screen {
 	private Rectangle backButtonBounds, playButtonBounds;
 	private Screen oldScreen, gameScreen;
 	private float timePassed = 0, activeTime = 0.15f;
-	private float soundVolume = 0.5f;
+	private float soundVolume = 0.05f;
 	private float leftBorder = 15;
 	private float rightBorder = 15; // Remember to add the right-most podium x to this!
 	private float x1, x2;

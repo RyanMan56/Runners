@@ -29,7 +29,7 @@ public class Podium {
 	private boolean animate = false;
 	private Sprite sprite;
 	private AssetManager assetManager;
-	private float soundVolume = 0.5f;
+	private float soundVolume = 0.05f;
 	private float width, height;
 	private Preferences pref;
 	private boolean isUnlocked = false, lockDisplayed = true, isComingSoon = false;
