@@ -29,7 +29,7 @@ public class Podium {
 	private boolean animate = false;
 	private Sprite sprite;
 	private AssetManager assetManager;
-	private float soundVolume = 0.05f;
+	private float soundVolume = 0.2f;
 	private float width, height;
 	private Preferences pref;
 	private boolean isUnlocked = false, lockDisplayed = true, isComingSoon = false;
@@ -75,6 +75,8 @@ public class Podium {
 				value = assetManager.get("30.png", Texture.class);
 			if(nameText.equalsIgnoreCase("Xorp"))
 				value = assetManager.get("40.png", Texture.class);
+			if(nameText.equalsIgnoreCase("BattleCat"))
+				value = assetManager.get("50.png", Texture.class);
 			if (nameText.equals("ComingSoon")) {
 				name = assetManager.get("ComingSoonName.png", Texture.class);
 				description = assetManager.get("ComingSoonDesc.png", Texture.class);
@@ -131,7 +133,6 @@ public class Podium {
 	}
 
 	public boolean checkSelecting(OrthographicCamera camera) {
-		if (isUnlocked) {
 			if (!isComingSoon)
 				if (!selected)
 					if (Gdx.input.justTouched()) {
@@ -142,10 +143,9 @@ public class Podium {
 							return true;
 						}
 					}
-		}
 		return false;
 	}
-
+	
 	public void animation() {
 		if (animate) {
 			elapsedTime += Gdx.graphics.getDeltaTime();
@@ -188,6 +188,10 @@ public class Podium {
 		this.selected = selected;
 	}
 
+	public boolean isUnlocked(){
+		return isUnlocked;
+	}
+	
 	public boolean isSelected() {
 		return selected;
 	}

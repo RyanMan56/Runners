@@ -7,6 +7,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -20,7 +21,6 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.subzero.background.Floor;
 import com.subzero.background.Mountains;
-import com.subzero.entities.BigCloud;
 import com.subzero.entities.Cloud;
 import com.subzero.entities.Podium;
 import com.subzero.images.ImageProvider;
@@ -40,8 +40,6 @@ public class CharacterSelectScreen implements Screen {
 	private Rectangle[] dust = new Rectangle[30];
 	private Random rand;
 	private Cloud[] clouds = new Cloud[2];
-	private Cloud cloud;
-	private BigCloud bigCloud;
 	private Texture characterSelectText;
 	private Podium nikolaPodium, ryanPodium, p1, p2, p3;
 	private ArrayList<Podium> podiums = new ArrayList<Podium>();
@@ -51,11 +49,13 @@ public class CharacterSelectScreen implements Screen {
 	private Rectangle backButtonBounds, playButtonBounds;
 	private Screen oldScreen, gameScreen;
 	private float timePassed = 0, activeTime = 0.15f;
-	private float soundVolume = 0.05f;
+	private float soundVolume = 0.2f, musicVolume = 1f;
 	private float leftBorder = 15;
 	private float rightBorder = 15; // Remember to add the right-most podium x to this!
 	private float x1, x2;
 	private float velocity, gravity = 0.9f, displacement;
+	private Music music;
+	private boolean locked = false;
 
 	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen, Screen gameScreen) {
 		this.game = game;
@@ -73,8 +73,6 @@ public class CharacterSelectScreen implements Screen {
 		rand = new Random();
 		clouds[0] = new Cloud(imageProvider.getScreenWidth(), imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
 		clouds[1] = new Cloud(imageProvider.getScreenWidth() * 1.5f, imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
-		cloud = new Cloud(-50, clouds[0].getY(), 100, assetManager);
-		bigCloud = new BigCloud(-50, clouds[1].getY(), 100, assetManager);
 		characterSelectText = assetManager.get("CharacterSelectText.png", Texture.class); // 36pt text size Upheaval TT
 		backButton = assetManager.get("Back.png", Texture.class);
 		backButtonBounds = new Rectangle(3, imageProvider.getScreenHeight() - backButton.getHeight() / 2 - 6f, backButton.getWidth() / 2, backButton.getHeight() / 2);
@@ -88,6 +86,7 @@ public class CharacterSelectScreen implements Screen {
 		podiums.add(new Podium("Ash", assetManager));
 		podiums.add(new Podium("Rob", assetManager));
 		podiums.add(new Podium("Xorp", assetManager));
+		podiums.add(new Podium("BattleCat", assetManager));
 		podiums.add(new Podium("ComingSoon", assetManager));
 		podiums.get(0).setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
@@ -95,13 +94,21 @@ public class CharacterSelectScreen implements Screen {
 
 		sort();
 		rightBorder = imageProvider.getScreenWidth() - 36 - 15; // TODO change right border
+		music = assetManager.get("265549__vikuserro__cheap-flash-game-tune.wav", Music.class);
+		music.setLooping(true);
+		music.setVolume(musicVolume);
 	}
 
 	@Override
 	public void show() {
 		timePassed = 0;
-		for(Podium podium : podiums)
+		for (Podium podium : podiums)
 			podium.checkPrefs();
+		music.play();
+		for (Podium podium : podiums) {
+			if (podium.getName().equals(pref.getString("defaultCharacter", "Nikola")))
+				setOnlySelected(defaultCharacter);
+		}
 	}
 
 	private void sort() {
@@ -138,29 +145,36 @@ public class CharacterSelectScreen implements Screen {
 			if (Gdx.input.justTouched()) {
 				if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
+					music.pause();
 					game.setScreen(oldScreen);
 				}
 				if (playButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 					assetManager.get("Select.wav", Sound.class).play(soundVolume);
-					game.setScreen(gameScreen);
+					for(Podium podium : podiums)
+						if(podium.isSelected())
+							if(podium.isUnlocked()){
+								game.setScreen(gameScreen);
+								music.pause();
+							}
+							else
+								purchase(podium);
 				}
 			}
 
-			for(Podium podium : podiums){
-				if(podium.checkSelecting(camera))
+			for (Podium podium : podiums) {
+				if (podium.checkSelecting(camera))
 					setOnlySelected(podium.getName());
 			}
-				
 
 			scroll();
-		}                                                                      
+		}
 
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		mountains.render(batch);
 		for (Cloud c : clouds)
 			c.render(batch);
-		for(Podium podium : podiums)
+		for (Podium podium : podiums)
 			podium.render(batch);
 		batch.draw(characterSelectText, imageProvider.getScreenWidth() / 2 - characterSelectText.getWidth() / 4, imageProvider.getScreenHeight() - characterSelectText.getHeight(), characterSelectText.getWidth() / 2, characterSelectText.getHeight() / 2);
 		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
@@ -190,7 +204,7 @@ public class CharacterSelectScreen implements Screen {
 	/**
 	 * Makes sure that this is the only selected Podium, deselects all others
 	 * and makes this the default character
-	 * 
+	 *  
 	 * @param name
 	 *            The name of the selected character's Podium
 	 */
@@ -198,10 +212,25 @@ public class CharacterSelectScreen implements Screen {
 		for (Podium podium : podiums) {
 			if (!podium.getName().equals(name))
 				podium.setSelected(false);
+			else {
+				podium.setSelected(true);
+				if (!podium.isUnlocked())
+					locked = true;
+				else
+					locked = false;
+			}
 		}
-		defaultCharacter = name;
-		pref.putString("defaultCharacter", defaultCharacter);
-		pref.flush();
+		if (!locked) {
+			defaultCharacter = name;
+			pref.putString("defaultCharacter", defaultCharacter);
+			pref.flush();
+			playButton = assetManager.get("Restart.png", Texture.class);
+		} else
+			playButton = assetManager.get("ShopButton.png", Texture.class);
+	}
+	
+	public void purchase(Podium podium){
+		// TODO Purchasing stuff here
 	}
 
 	public void createDust() {
@@ -239,14 +268,7 @@ public class CharacterSelectScreen implements Screen {
 	public void updateClouds() {
 		for (int i = 0; i < clouds.length; i++) {
 			if (clouds[i].getX() < -(clouds[i].getSprite().getWidth())) {
-				if (rand.nextInt(2) == 0) {
-					cloud.setY(clouds[i].getY());
-					clouds[i].setSprite(cloud.getSprite());
-				}
-				if (rand.nextInt(2) == 1) {
-					bigCloud.setY(clouds[i].getY());
-					clouds[i].setSprite(bigCloud.getSprite());
-				}
+				clouds[i].randomCloud();
 				clouds[i].setY(imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10);
 				clouds[i].setX(imageProvider.getScreenWidth());
 			}

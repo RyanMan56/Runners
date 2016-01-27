@@ -24,7 +24,6 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.subzero.background.Floor;
 import com.subzero.background.Mountains;
-import com.subzero.entities.BigCloud;
 import com.subzero.entities.Cactus;
 import com.subzero.entities.Cloud;
 import com.subzero.entities.Entity;
@@ -54,8 +53,6 @@ public class GameScreen implements Screen {
 	private TwoSmallCactus twoSmallCactus, twoSmallCactus2;
 	private ThreeSmallCactus threeSmallCactus, threeSmallCactus2;
 	private Cloud clouds[] = new Cloud[2];
-	private Cloud cloud;
-	private BigCloud bigCloud;
 	private Rectangle[] dust = new Rectangle[30];
 	private boolean running = true;
 	private BitmapFont font;
@@ -75,7 +72,7 @@ public class GameScreen implements Screen {
 	private float alphaValue;
 	private boolean restartable = false;
 	private boolean canPlayHitSound = true;
-	private float soundVolume = 0.05f, musicVolume = 1f;
+	private float soundVolume = 0.2f, musicVolume = 1f;
 	private Preferences pref;
 	private int highScoreValue;
 	private Runners game;
@@ -116,8 +113,6 @@ public class GameScreen implements Screen {
 		smallCactus2 = new SmallCactus(-50, 12, 100, assetManager);
 		clouds[0] = new Cloud(imageProvider.getScreenWidth(), imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
 		clouds[1] = new Cloud(imageProvider.getScreenWidth() * 1.5f, imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
-		cloud = new Cloud(-50, clouds[0].getY(), 100, assetManager);
-		bigCloud = new BigCloud(-50, clouds[1].getY(), 100, assetManager);
 		font = new BitmapFont(Gdx.files.internal("fipps.fnt"));
 		textStyle = new LabelStyle();
 		textStyle.font = font;
@@ -164,7 +159,7 @@ public class GameScreen implements Screen {
 
 		characterUnlocked = assetManager.get("CharacterUnlocked.png", Texture.class);
 		
-		music = assetManager.get("250754__cebuana__one.wav", Music.class);
+		music = assetManager.get("251461__joshuaempyre__arcade-music-loop.wav", Music.class);
 		music.setVolume(musicVolume);
 		music.setLooping(true);
 	}
@@ -198,6 +193,7 @@ public class GameScreen implements Screen {
 		shapeRenderer.end();
 
 		update();
+		
 
 		drawBackground();
 		
@@ -352,6 +348,8 @@ public class GameScreen implements Screen {
 			unlock("Rob");
 		if(cactusScore >= 40)
 			unlock("Xorp");
+		if(cactusScore >= 50)
+			unlock("BattleCat");
 
 	}
 
@@ -545,7 +543,11 @@ public class GameScreen implements Screen {
 	public void updateSpeed() {
 		if (running) {
 			for (int i = 0; i < cacti.length; i++) {
-				cacti[i].increaseSpeedBy(0.0005f);
+				if(cacti[i].getSpeed() < 3.5f)
+					cacti[i].increaseSpeedBy(0.0005f);
+				if(cacti[i].getSpeed() > 3.5f)
+					cacti[i].setSpeed(3.5f);
+					
 			}
 			player.updateGameSpeed(cacti[0].getSpeed());
 		}
@@ -609,15 +611,7 @@ public class GameScreen implements Screen {
 	public void updateClouds() {
 		for (int i = 0; i < clouds.length; i++) {
 			if (clouds[i].getX() < -(clouds[i].getSprite().getWidth())) {
-				int val = rand.nextInt(2);
-				if (val == 0) {
-					cloud.setY(clouds[i].getY());
-					clouds[i].setSprite(cloud.getSprite());
-				}
-				if (val == 1) {
-					bigCloud.setY(clouds[i].getY());
-					clouds[i].setSprite(bigCloud.getSprite());
-				}
+				clouds[i].randomCloud();
 				clouds[i].setY(imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10);
 				clouds[i].setX(imageProvider.getScreenWidth());
 			}

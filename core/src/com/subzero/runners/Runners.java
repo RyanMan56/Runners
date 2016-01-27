@@ -69,6 +69,11 @@ public class Runners extends Game {
 		assetManager.load("Xorp-j.png", Texture.class);
 		assetManager.load("XorpName.png", Texture.class);
 		assetManager.load("XorpDesc.png", Texture.class);
+		assetManager.load("BattleCat.png", Texture.class);
+		assetManager.load("BattleCat-w.png", Texture.class);
+		assetManager.load("BattleCat-j.png", Texture.class);
+		assetManager.load("BattleCatName.png", Texture.class);
+		assetManager.load("BattleCatDesc.png", Texture.class);
 		assetManager.load("LockedName.png", Texture.class);
 		assetManager.load("LockedDesc.png", Texture.class);
 		assetManager.load("ComingSoon.png", Texture.class);
@@ -80,7 +85,9 @@ public class Runners extends Game {
 		assetManager.load("20.png", Texture.class);
 		assetManager.load("30.png", Texture.class);
 		assetManager.load("40.png", Texture.class);
+		assetManager.load("50.png", Texture.class);
 		assetManager.load("CharacterUnlocked.png", Texture.class);
+		assetManager.load("ShopButton.png", Texture.class);
 		
 		assetManager.load("Jump.wav", Sound.class);
 		assetManager.load("Hit.wav", Sound.class);
@@ -88,7 +95,9 @@ public class Runners extends Game {
 		assetManager.load("Point.wav", Sound.class);
 		assetManager.load("Yay.wav", Sound.class);
 		
-		assetManager.load("250754__cebuana__one.wav", Music.class);
+		assetManager.load("265549__vikuserro__cheap-flash-game-tune.wav", Music.class);
+		assetManager.load("251461__joshuaempyre__arcade-music-loop.wav", Music.class);
+		assetManager.load("248117__zagi2__retro-gaming-loop.wav", Music.class);
 	}
 
 	@Override

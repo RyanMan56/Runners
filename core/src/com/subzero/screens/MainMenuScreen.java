@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.GL20;
@@ -23,7 +24,6 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.subzero.background.Floor;
 import com.subzero.background.Mountains;
-import com.subzero.entities.BigCloud;
 import com.subzero.entities.Cloud;
 import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
@@ -37,8 +37,6 @@ public class MainMenuScreen implements Screen {
 	private Floor floor;
 	private Random rand;
 	private Cloud[] clouds = new Cloud[2];
-	private Cloud cloud;
-	private BigCloud bigCloud;
 	private Rectangle[] dust = new Rectangle[30];
 	private float speed = 1.0f;
 	private Texture title;
@@ -66,7 +64,9 @@ public class MainMenuScreen implements Screen {
 	private Preferences pref;
 	private String defaultCharacter;
 	private float timePassed = 0, initActiveTime = 0.15f, activeTime;
-	private float soundVolume = 0.05f;
+	private float soundVolume = 0.2f;
+	private Music music;
+	private boolean shouldPlay = true;
 
 	public MainMenuScreen(Runners game, AssetManager assetManager) {
 		this.game = game;
@@ -99,8 +99,6 @@ public class MainMenuScreen implements Screen {
 
 		clouds[0] = new Cloud(imageProvider.getScreenWidth(), imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
 		clouds[1] = new Cloud(imageProvider.getScreenWidth() * 1.5f, imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
-		cloud = new Cloud(-50, clouds[0].getY(), 100, assetManager);
-		bigCloud = new BigCloud(-50, clouds[1].getY(), 100, assetManager);
 		title = assetManager.get("Menu.png", Texture.class);
 		textureRegion = new TextureRegion(assetManager.get(defaultCharacter + "-j.png", Texture.class));
 		animatedTextures = textureRegion.split(18, 22)[0];
@@ -115,6 +113,9 @@ public class MainMenuScreen implements Screen {
 		titleHeight = title.getHeight() * 1.2f;//titleWidth / (152 / 18f);
 
 		createDust();
+
+		music = assetManager.get("248117__zagi2__retro-gaming-loop.wav", Music.class);
+		music.setVolume(1);
 	}
 
 	public void createDust() {
@@ -128,6 +129,8 @@ public class MainMenuScreen implements Screen {
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 		bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
 		timePassed = 0;
+		if (shouldPlay)
+			music.play();
 	}
 
 	@Override
@@ -202,10 +205,14 @@ public class MainMenuScreen implements Screen {
 				if (Gdx.input.justTouched()) {
 					if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						shouldPlay = false;
+						music.pause();
 						game.setScreen(gameScreen);
 					}
 					if (characterSelectBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
 						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						music.pause();
+						shouldPlay = false;
 						game.setScreen(characterSelectScreen);
 					}
 				}
@@ -236,14 +243,7 @@ public class MainMenuScreen implements Screen {
 	public void updateClouds() {
 		for (int i = 0; i < clouds.length; i++) {
 			if (clouds[i].getX() < -(clouds[i].getSprite().getWidth())) {
-				if (rand.nextInt(2) == 0) {
-					cloud.setY(clouds[i].getY());
-					clouds[i].setSprite(cloud.getSprite());
-				}
-				if (rand.nextInt(2) == 1) {
-					bigCloud.setY(clouds[i].getY());
-					clouds[i].setSprite(bigCloud.getSprite());
-				}
+				clouds[i].randomCloud();
 				clouds[i].setY(imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10);
 				clouds[i].setX(imageProvider.getScreenWidth());
 			}
@@ -275,8 +275,8 @@ public class MainMenuScreen implements Screen {
 
 		}
 	}
-	
-	private void initCharacters(){
+
+	private void initCharacters() {
 		if (!pref.getBoolean("Nikola", false)) {
 			pref.putBoolean("Nikola", true);
 			pref.flush();
@@ -285,14 +285,15 @@ public class MainMenuScreen implements Screen {
 			pref.putBoolean("ComingSoon", true);
 			pref.flush();
 		}
-		
+
 		initCharacter("Ryan");
 		initCharacter("Ash");
 		initCharacter("Rob");
 		initCharacter("Xorp");
+		initCharacter("BattleCat");
 	}
-	
-	private void initCharacter(String name){
+
+	private void initCharacter(String name) {
 		if (!pref.getBoolean(name, false)) {
 			pref.putBoolean(name, false);
 			pref.flush();
