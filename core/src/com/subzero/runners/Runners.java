@@ -1,19 +1,25 @@
 package com.subzero.runners;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.subzero.screens.GameScreen;
 import com.subzero.screens.MainMenuScreen;
+import com.subzero.services.IGoogleServices;
 
 public class Runners extends Game {
 	MainMenuScreen mainMenuScreen;
 	GameScreen gameScreen;
 	AssetManager assetManager;
 	private boolean loaded = false;
+	public static IGoogleServices googleServices;
+	
+	public Runners(IGoogleServices googleServices){
+		super();
+		this.googleServices = googleServices;
+	}
 	
 	@Override
 	public void create () {
@@ -39,9 +45,6 @@ public class Runners extends Game {
 		assetManager.load("Menu.png", Texture.class);
 		assetManager.load("Restart.png", Texture.class);
 		assetManager.load("Pause.png", Texture.class);
-		assetManager.load("BackgroundFront.png", Texture.class);
-		assetManager.load("BackgroundMiddle.png", Texture.class);
-		assetManager.load("BackgroundBack.png", Texture.class);
 		assetManager.load("BackgroundNew.png", Texture.class);
 		assetManager.load("CharacterSelectButton.png", Texture.class);
 		assetManager.load("CharacterSelectText.png", Texture.class);
@@ -74,6 +77,26 @@ public class Runners extends Game {
 		assetManager.load("BattleCat-j.png", Texture.class);
 		assetManager.load("BattleCatName.png", Texture.class);
 		assetManager.load("BattleCatDesc.png", Texture.class);
+		assetManager.load("Rootsworth.png", Texture.class);
+		assetManager.load("Rootsworth-w.png", Texture.class);
+		assetManager.load("Rootsworth-j.png", Texture.class);
+		assetManager.load("RootsworthName.png", Texture.class);
+		assetManager.load("RootsworthDesc.png", Texture.class);
+		assetManager.load("Snap.png", Texture.class);
+		assetManager.load("Snap-w.png", Texture.class);
+		assetManager.load("Snap-j.png", Texture.class);
+		assetManager.load("SnapName.png", Texture.class);
+		assetManager.load("SnapDesc.png", Texture.class);
+		assetManager.load("Metatron.png", Texture.class);
+		assetManager.load("Metatron-w.png", Texture.class);
+		assetManager.load("Metatron-j.png", Texture.class);
+		assetManager.load("MetatronName.png", Texture.class);
+		assetManager.load("MetatronDesc.png", Texture.class);
+		assetManager.load("Abaddon.png", Texture.class);
+		assetManager.load("Abaddon-w.png", Texture.class);
+		assetManager.load("Abaddon-j.png", Texture.class);
+		assetManager.load("AbaddonName.png", Texture.class);
+		assetManager.load("AbaddonDesc.png", Texture.class);
 		assetManager.load("LockedName.png", Texture.class);
 		assetManager.load("LockedDesc.png", Texture.class);
 		assetManager.load("ComingSoon.png", Texture.class);
@@ -86,8 +109,17 @@ public class Runners extends Game {
 		assetManager.load("30.png", Texture.class);
 		assetManager.load("40.png", Texture.class);
 		assetManager.load("50.png", Texture.class);
+		assetManager.load("60.png", Texture.class);
+		assetManager.load("70.png", Texture.class);
+		assetManager.load("80.png", Texture.class);
+		assetManager.load("90.png", Texture.class);
 		assetManager.load("CharacterUnlocked.png", Texture.class);
 		assetManager.load("ShopButton.png", Texture.class);
+		assetManager.load("Music.png", Texture.class);
+		assetManager.load("MusicMuted.png", Texture.class);
+		assetManager.load("Sound.png", Texture.class);
+		assetManager.load("SoundMuted.png", Texture.class);
+		assetManager.load("Leaderboards.png", Texture.class);
 		
 		assetManager.load("Jump.wav", Sound.class);
 		assetManager.load("Hit.wav", Sound.class);
@@ -107,7 +139,7 @@ public class Runners extends Game {
 			if(assetManager.update()){
 				assetManager.get("Select.wav", Sound.class).play(0);
 //				gameScreen = new GameScreen(assetManager);
-				mainMenuScreen = new MainMenuScreen(this, assetManager);
+				mainMenuScreen = new MainMenuScreen(this, assetManager, googleServices);
 				setScreen(mainMenuScreen);
 				loaded = true;
 			}

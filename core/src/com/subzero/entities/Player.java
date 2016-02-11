@@ -27,6 +27,7 @@ public class Player extends Entity {
 	private float soundVolume;
 	private Preferences pref;
 	private String defaultCharacter;
+	private boolean volumeButtonPressed = false;
 
 	public Player(float x, float y, float health, AssetManager assetManager) {
 		super(x, y, health, assetManager);
@@ -35,28 +36,28 @@ public class Player extends Entity {
 		bounds[1] = new Rectangle(-20, 6, 18, 16);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
-		
-		texture = assetManager.get(defaultCharacter+".png", Texture.class);
-		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-w.png", Texture.class));
+
+		texture = assetManager.get(defaultCharacter + ".png", Texture.class);
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter + "-w.png", Texture.class));
 		animatedTextures = textureRegion.split(18, 22)[0];
 		animation = new Animation(period, animatedTextures);
 		animation.setPlayMode(PlayMode.LOOP);
-		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-j.png", Texture.class));
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter + "-j.png", Texture.class));
 		animatedJumpTextures = textureRegion.split(18, 22)[0];
 		groundLevel = new Vector2(x, y);
 		sprite = new Sprite(texture, 18, 22);
 		sprite.setX(x);
 		sprite.setY(y);
 	}
-	
-	public void setCharacter(){
+
+	public void setCharacter() {
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
-		texture = assetManager.get(defaultCharacter+".png", Texture.class);
-		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-w.png", Texture.class));
+		texture = assetManager.get(defaultCharacter + ".png", Texture.class);
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter + "-w.png", Texture.class));
 		animatedTextures = textureRegion.split(18, 22)[0];
 		animation = new Animation(period, animatedTextures);
 		animation.setPlayMode(PlayMode.LOOP);
-		textureRegion = new TextureRegion(assetManager.get(defaultCharacter+"-j.png", Texture.class));
+		textureRegion = new TextureRegion(assetManager.get(defaultCharacter + "-j.png", Texture.class));
 		animatedJumpTextures = textureRegion.split(18, 22)[0];
 		groundLevel = new Vector2(x, y);
 		sprite = new Sprite(texture, 18, 22);
@@ -67,7 +68,8 @@ public class Player extends Entity {
 	public void updateGameSpeed(float gameSpeed) {
 		this.gameSpeed = gameSpeed;
 	}
-	public void setSoundVolume(float soundVolume){
+
+	public void setSoundVolume(float soundVolume) {
 		this.soundVolume = soundVolume;
 	}
 
@@ -81,13 +83,15 @@ public class Player extends Entity {
 			speed = 0;
 		}
 		if (gameSpeed > 1.003)
-			if (!jumping) {
-				if (Gdx.input.justTouched()) {
-					speed = 6.7f; // Determines initial jump velocity
-					assetManager.get("Jump.wav", Sound.class).play(soundVolume);
-					jumping = true;
+			if (!volumeButtonPressed)
+				if (!jumping) {
+					if (Gdx.input.justTouched()) {
+						speed = 6.7f; // Determines initial jump velocity
+						if (!pref.getBoolean("SoundMuted"))
+							assetManager.get("Jump.wav", Sound.class).play(soundVolume);
+						jumping = true;
+					}
 				}
-			}
 
 		sprite.setX(x);
 		sprite.setY(y);
@@ -103,8 +107,9 @@ public class Player extends Entity {
 				sprite.setRegion(animatedJumpTextures[1]);
 		}
 	}
-	
-	public void update(){
+
+	public void update(boolean volumeButtonPressed) {
+		this.volumeButtonPressed = volumeButtonPressed;
 		if (health > 0) {
 			elapsedTime += Gdx.graphics.getDeltaTime();
 			if (!jumpAnimationing)

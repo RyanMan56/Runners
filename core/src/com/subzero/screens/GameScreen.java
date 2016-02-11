@@ -34,6 +34,7 @@ import com.subzero.entities.ThreeSmallCactus;
 import com.subzero.entities.TwoSmallCactus;
 import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
+import com.subzero.services.IGoogleServices;
 
 public class GameScreen implements Screen {
 	private AssetManager assetManager;
@@ -76,8 +77,8 @@ public class GameScreen implements Screen {
 	private Preferences pref;
 	private int highScoreValue;
 	private Runners game;
-	private Texture restart, pause, backButton;
-	private Rectangle restartBounds, pauseBounds, unpauseBounds, backButtonBounds, pausedBackBounds;
+	private Texture restart, pause, backButton, leaderboardsButton;
+	private Rectangle restartBounds, pauseBounds, unpauseBounds, backButtonBounds, pausedBackBounds, leaderboardsButtonBounds;
 	private Viewport viewport;
 	private boolean paused = false;
 	private Screen oldScreen;
@@ -86,11 +87,18 @@ public class GameScreen implements Screen {
 	private boolean shouldDrawCharacterUnlock = false;
 	private long unlockTime;
 	private Music music;
+	private Texture musicButton, soundButton;
+	private Rectangle musicButtonBounds, soundButtonBounds;
+	private IGoogleServices googleServices;
+	private boolean hasSubmitted = false;
+	private boolean volumeButtonPressed = false;
+	private boolean unlocksChecked = false;
 
-	public GameScreen(Runners game, AssetManager assetManager, Screen screen) {
+	public GameScreen(Runners game, AssetManager assetManager, Screen screen, IGoogleServices googleServices) {
 		this.game = game;
 		this.assetManager = assetManager;
 		this.oldScreen = screen;
+		this.googleServices = googleServices;
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		viewport = new FitViewport(imageProvider.getScreenWidth(), imageProvider.getScreenHeight(), camera);
@@ -134,7 +142,8 @@ public class GameScreen implements Screen {
 		endSlate.setY(imageProvider.getScreenHeight() / 5);
 		endEndSlateY = endSlate.y;
 		endSlateBorder = new Rectangle(endSlate.x - 1, endSlate.y - 1, endSlate.width + 2, endSlate.height + 2);
-		restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
+		restart = assetManager.get("Restart.png", Texture.class);
+		restartButton = new Rectangle(endSlate.x - 17.5f, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
 		gameOverScore = new Label("", textStyle);
 		highScore = new Label("highScoreValue", textStyle);
 		medal = assetManager.get("Medal.png", Texture.class);
@@ -146,22 +155,36 @@ public class GameScreen implements Screen {
 		goldMedal = assetManager.get("GoldMedal.png", Texture.class);
 		platinumMedal = assetManager.get("PlatinumMedal.png", Texture.class);
 		medalHolder = blankMedal;
-		restart = assetManager.get("Restart.png", Texture.class);
-		restartBounds = new Rectangle(restartButton.x + restart.getWidth() + 18, restartButton.y, restart.getWidth(), restart.getHeight());
+		restartBounds = new Rectangle(restartButton.x + restart.getWidth() + 2, restartButton.y, restart.getWidth(), restart.getHeight());
 		pause = assetManager.get("Pause.png", Texture.class);
 		pauseBounds = new Rectangle(5, imageProvider.getScreenHeight() - pause.getHeight() - 5, pause.getWidth(), pause.getHeight());
-		unpauseBounds = new Rectangle(restartBounds.x, imageProvider.getScreenHeight() / 2 - restart.getHeight() / 2, restartBounds.width, restartBounds.height);
+		unpauseBounds = new Rectangle(restartBounds.x + 17.5f, imageProvider.getScreenHeight() / 2 - restart.getHeight() / 2, restartBounds.width, restartBounds.height);
 		backButton = assetManager.get("BackButton.png", Texture.class);
 		backButtonBounds = new Rectangle(restartButton.x, restartButton.y, backButton.getWidth(), backButton.getHeight());
-		pausedBackBounds = new Rectangle(backButtonBounds.x, imageProvider.getScreenHeight() / 2 - backButton.getHeight() / 2, backButtonBounds.width, backButtonBounds.height);
+		pausedBackBounds = new Rectangle(backButtonBounds.x + 17.5f, imageProvider.getScreenHeight() / 2 - backButton.getHeight() / 2, backButtonBounds.width, backButtonBounds.height);
+		leaderboardsButton = assetManager.get("Leaderboards.png", Texture.class);
+		leaderboardsButtonBounds = new Rectangle(restartBounds.x + leaderboardsButton.getWidth() + 2, backButtonBounds.y, leaderboardsButton.getWidth(), leaderboardsButton.getHeight());
 
 		createDust();
 
 		characterUnlocked = assetManager.get("CharacterUnlocked.png", Texture.class);
-		
+
 		music = assetManager.get("251461__joshuaempyre__arcade-music-loop.wav", Music.class);
 		music.setVolume(musicVolume);
 		music.setLooping(true);
+
+		if (!pref.getBoolean("MusicMuted", false))
+			musicButton = assetManager.get("Music.png", Texture.class);
+		else
+			musicButton = assetManager.get("MusicMuted.png", Texture.class);
+
+		if (!pref.getBoolean("SoundMuted", false))
+			soundButton = assetManager.get("Sound.png", Texture.class);
+		else
+			soundButton = assetManager.get("SoundMuted.png", Texture.class);
+
+		soundButtonBounds = new Rectangle(imageProvider.getScreenWidth() - 5 - soundButton.getWidth(), imageProvider.getScreenHeight() - pause.getHeight() - 5, pause.getWidth(), pause.getHeight());
+		musicButtonBounds = new Rectangle(soundButtonBounds.x - musicButton.getWidth() - 5, imageProvider.getScreenHeight() - pause.getHeight() - 5, pause.getWidth(), pause.getHeight());
 	}
 
 	public void createDust() {
@@ -177,7 +200,8 @@ public class GameScreen implements Screen {
 		running = true;
 		paused = false;
 		performRestart();
-		music.play();
+		if (!pref.getBoolean("MusicMuted"))
+			music.play();
 	}
 
 	@Override
@@ -186,6 +210,7 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
 
+		
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Filled);
 		shapeRenderer.setColor(0.19f, 0.54f, 0.85f, 1);
@@ -193,10 +218,9 @@ public class GameScreen implements Screen {
 		shapeRenderer.end();
 
 		update();
-		
 
 		drawBackground();
-		
+
 		batch.setProjectionMatrix(camera.combined);
 
 		batch.begin();
@@ -220,13 +244,16 @@ public class GameScreen implements Screen {
 
 		updateEnd();
 		drawPause();
+		drawVolumeButtons();
 	}
 
 	public void checkPause() {
 		if (running) {
 			if (Gdx.input.justTouched()) {
 				if (pauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-					assetManager.get("Select.wav", Sound.class).play(soundVolume);
+					if (!pref.getBoolean("SoundMuted"))
+						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+					volumeButtonPressed = true;
 					paused = true;
 					running = false;
 				}
@@ -235,12 +262,15 @@ public class GameScreen implements Screen {
 			if (paused) {
 				if (Gdx.input.justTouched()) {
 					if (unpauseBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						if (!pref.getBoolean("SoundMuted"))
+							assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						volumeButtonPressed = true;
 						running = true;
 						paused = false;
 					}
 					if (pausedBackBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						if (!pref.getBoolean("SoundMuted"))
+							assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						music.pause();
 						game.setScreen(oldScreen);
 					}
@@ -268,24 +298,64 @@ public class GameScreen implements Screen {
 		}
 	}
 
+	public void drawVolumeButtons() {
+		batch.setProjectionMatrix(camera.combined);
+		batch.begin();
+		batch.draw(soundButton, soundButtonBounds.x, soundButtonBounds.y);
+		batch.draw(musicButton, musicButtonBounds.x, musicButtonBounds.y);
+		batch.end();
+	}
+
+	public void updateVolumeControl() {
+		if ((soundButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.justTouched())) {
+			volumeButtonPressed = true;
+			if (pref.getBoolean("SoundMuted")) {
+				pref.putBoolean("SoundMuted", false);
+				pref.flush();
+				soundButton = assetManager.get("Sound.png", Texture.class);
+			} else {
+				pref.putBoolean("SoundMuted", true);
+				pref.flush();
+				soundButton = assetManager.get("SoundMuted.png", Texture.class);
+			}
+		}
+
+		if ((musicButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.justTouched())) {
+			volumeButtonPressed = true;
+			if (pref.getBoolean("MusicMuted")) {
+				pref.putBoolean("MusicMuted", false);
+				pref.flush();
+				musicButton = assetManager.get("Music.png", Texture.class);
+				music.play();
+			} else {
+				pref.putBoolean("MusicMuted", true);
+				pref.flush();
+				musicButton = assetManager.get("MusicMuted.png", Texture.class);
+				music.pause();
+			}
+		}
+	}
+
 	public void update() {
 		checkPause();
 		updateScore();
 		updateSpeed();
-		
-		if(paused){
+		updateVolumeControl();
+
+		if (paused) {
 			music.pause();
-		}else{
-			music.play();
+		} else {
+			if (!pref.getBoolean("MusicMuted"))
+				music.play();
 		}
-		
+
 		//		drawBackground();
 		if (running) {
 			updateClouds();
 			updateCacti();
 			for (Cloud c : clouds)
 				c.update(cacti[0].getSpeed());
-			player.update();
+			player.update(volumeButtonPressed);
 			for (Cactus c : cacti)
 				c.update();
 
@@ -294,7 +364,9 @@ public class GameScreen implements Screen {
 		if ((!running) && (!paused)) {
 			restart();
 			toMenu();
+			leaderboardsPressed();
 		}
+		volumeButtonPressed = false;
 	}
 
 	public void updateEnd() {
@@ -303,17 +375,17 @@ public class GameScreen implements Screen {
 	}
 
 	public void gameOver() {
-		checkUnlocks();
 		if (cactusScore > highScoreValue) {
 			pref.putInteger("score", cactusScore);
 			highScoreValue = cactusScore;
 			pref.flush();
 		}
-		
-		if(shouldDrawCharacterUnlock){
-			
-			
-		}else{
+		if (!unlocksChecked)
+			checkUnlocks();
+
+		if (shouldDrawCharacterUnlock) {
+
+		} else {
 			gameOverText.draw(batch, 1);
 			if (gameOverText.getColor().a < 0.5f) {
 				gameOverText.setPosition(gameOverText.getX(), gameOverText.getY() + 0.5f);
@@ -330,27 +402,63 @@ public class GameScreen implements Screen {
 				restartButton.y++;
 				restartBounds.y++;
 				backButtonBounds.y++;
+				leaderboardsButtonBounds.y++;
 				endSlateAlpha = endSlate.y / (startEndSlateY);
 			}
 			if (endSlateAlpha < 1)
 				restartable = false;
 			else
 				restartable = true;
+			if (!hasSubmitted) {
+				if (googleServices.isSignedIn()) {
+					googleServices.submitScore(highScoreValue);
+				}
+				hasSubmitted = true;
+			}
 		}
+		unlocksChecked = true;
 	}
 
 	public void checkUnlocks() {
-		if (cactusScore >= 10)
+		if (highScoreValue >= 5) {
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQBQ");
+		}
+		if (highScoreValue >= 10) {
 			unlock("Ryan");
-		if (cactusScore >= 20)
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQBA");
+		}
+		if (highScoreValue >= 20) {
 			unlock("Ash");
-		if(cactusScore >= 30)
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQBg");
+		}
+		if (highScoreValue >= 30) {
 			unlock("Rob");
-		if(cactusScore >= 40)
-			unlock("Xorp");
-		if(cactusScore >= 50)
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQBw");
+		}
+		if (highScoreValue >= 40) {
 			unlock("BattleCat");
-
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQCA");
+		}
+		if (highScoreValue >= 50) {
+			unlock("Xorp");
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQCQ");
+		}
+		if (highScoreValue >= 60) {
+			unlock("Rootsworth");
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQCg");
+		}
+		if (highScoreValue >= 70) {
+			unlock("Snap");
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQCw");
+		}
+		if (highScoreValue >= 80) {
+			unlock("Metatron");
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQDA");
+		}
+		if (highScoreValue >= 90) {
+			unlock("Abaddon");
+			googleServices.unlockAchievement("CgkIjIKHuuIVEAIQDQ");
+		}
 	}
 
 	public void unlock(String name) {
@@ -369,13 +477,14 @@ public class GameScreen implements Screen {
 		unlockPodium.setSelected(true);
 
 		shouldDrawCharacterUnlock = true;
-		assetManager.get("Yay.wav", Sound.class).play(soundVolume);
+		if (!pref.getBoolean("SoundMuted"))
+			assetManager.get("Yay.wav", Sound.class).play(soundVolume);
 		unlockTime = System.currentTimeMillis();
 	}
 
 	public void displayUnlockMessage(SpriteBatch batch) {
 		endSlateAlpha = 0;
-		
+
 		Gdx.gl.glEnable(GL10.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		shapeRenderer.setProjectionMatrix(camera.combined);
@@ -384,16 +493,16 @@ public class GameScreen implements Screen {
 		shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		shapeRenderer.end();
 		Gdx.gl.glDisable(GL10.GL_BLEND);
-		
+
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, 1);
 		unlockPodium.render(batch);
-		batch.draw(characterUnlocked, 10, imageProvider.getScreenHeight()-19, characterUnlocked.getWidth()/2, characterUnlocked.getHeight()/2);
+		batch.draw(characterUnlocked, 10, imageProvider.getScreenHeight() - 19, characterUnlocked.getWidth() / 2, characterUnlocked.getHeight() / 2);
 		batch.end();
-		
-		if(System.currentTimeMillis()-unlockTime > 1000)
-			if(Gdx.input.isTouched())
+
+		if (System.currentTimeMillis() - unlockTime > 1000)
+			if (Gdx.input.isTouched())
 				shouldDrawCharacterUnlock = false;
 	}
 
@@ -469,7 +578,7 @@ public class GameScreen implements Screen {
 			alphaValue = 0;
 		if (endSlateAlpha > 1)
 			alphaValue = 1;
-		
+
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, alphaValue);
 		text.setPosition(imageProvider.getScreenWidth() / 2 - scorePadding, imageProvider.getScreenHeight() - 20);
 		batch.draw(medal, endSlate.x + 10, endSlate.y + endSlate.height - medal.getHeight() - 4);
@@ -482,9 +591,10 @@ public class GameScreen implements Screen {
 		batch.draw(medalHolder, endSlate.x + 9, endSlate.y + 7.5f);
 		batch.draw(restart, restartBounds.x, restartBounds.y, restartBounds.width, restartBounds.height);
 		batch.draw(backButton, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
+		batch.draw(leaderboardsButton, leaderboardsButtonBounds.x, leaderboardsButtonBounds.y, leaderboardsButtonBounds.width, leaderboardsButtonBounds.height);
 		batch.end();
-		
-		if(shouldDrawCharacterUnlock){
+
+		if (shouldDrawCharacterUnlock) {
 			displayUnlockMessage(batch);
 		}
 	}
@@ -493,13 +603,15 @@ public class GameScreen implements Screen {
 		if (!restarting)
 			if (restartable)
 				if ((restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.justTouched())) {
-					assetManager.get("Select.wav", Sound.class).play(soundVolume);
+					if (!pref.getBoolean("SoundMuted"))
+						assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					performRestart();
 				}
 	}
 
 	public void performRestart() {
-		assetManager.get("Select.wav", Sound.class).play(soundVolume);
+		if (!pref.getBoolean("SoundMuted"))
+			assetManager.get("Select.wav", Sound.class).play(soundVolume);
 		restartable = false;
 		restarting = true;
 		cacti[0] = new Cactus(imageProvider.getScreenWidth(), 12, 100, assetManager);
@@ -526,28 +638,42 @@ public class GameScreen implements Screen {
 		restartButton = new Rectangle(endSlate.x, endSlate.y - endSlate.height / 2 - 3, endSlate.width / 2, endSlate.height / 2);
 		restartBounds.y = restartButton.y;
 		backButtonBounds.y = restartBounds.y;
+		leaderboardsButtonBounds.y = backButtonBounds.y;
 		canPlayHitSound = true;
+		hasSubmitted = false;
 		restarting = false;
 		running = true;
-
+		unlocksChecked = false;
 	}
 
 	public void toMenu() {
 		if ((backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.justTouched())) {
-			assetManager.get("Select.wav", Sound.class).play(soundVolume);
+			if (!pref.getBoolean("SoundMuted"))
+				assetManager.get("Select.wav", Sound.class).play(soundVolume);
 			music.pause();
 			game.setScreen(oldScreen);
+		}
+	}
+
+	public void leaderboardsPressed() {
+		if ((leaderboardsButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) && (Gdx.input.justTouched())) {
+			if (!pref.getBoolean("SoundMuted"))
+				assetManager.get("Select.wav", Sound.class).play(soundVolume);
+			if (googleServices.isSignedIn())
+				googleServices.showScores();
+			else
+				googleServices.signIn();
 		}
 	}
 
 	public void updateSpeed() {
 		if (running) {
 			for (int i = 0; i < cacti.length; i++) {
-				if(cacti[i].getSpeed() < 3.5f)
+				if (cacti[i].getSpeed() < 3.5f)
 					cacti[i].increaseSpeedBy(0.0005f);
-				if(cacti[i].getSpeed() > 3.5f)
+				if (cacti[i].getSpeed() > 3.5f)
 					cacti[i].setSpeed(3.5f);
-					
+
 			}
 			player.updateGameSpeed(cacti[0].getSpeed());
 		}
@@ -591,7 +717,8 @@ public class GameScreen implements Screen {
 			if (player.getSprite().getBoundingRectangle().overlaps(cacti[i].getSprite().getBoundingRectangle())) {
 				if (doesCollide(player, cacti[i])) {
 					if (canPlayHitSound) {
-						assetManager.get("Hit.wav", Sound.class).play(soundVolume);
+						if (!pref.getBoolean("SoundMuted"))
+							assetManager.get("Hit.wav", Sound.class).play(soundVolume);
 						canPlayHitSound = false;
 					}
 					cacti[0].setSpeed(0);
@@ -625,14 +752,16 @@ public class GameScreen implements Screen {
 			if (cacti[0].getX() + cacti[0].getSprite().getWidth() < player.getX()) {
 				cactusScore++;
 				if (cactusScore > 0)
-					assetManager.get("Point.wav", Sound.class).play(soundVolume);
+					if (!pref.getBoolean("SoundMuted"))
+						assetManager.get("Point.wav", Sound.class).play(soundVolume);
 				cactus0Passed = true;
 			}
 		if (!cactus1Passed)
 			if (cacti[1].getX() + cacti[1].getSprite().getWidth() < player.getX()) {
 				cactusScore++;
 				if (cactusScore > 0)
-					assetManager.get("Point.wav", Sound.class).play(soundVolume);
+					if (!pref.getBoolean("SoundMuted"))
+						assetManager.get("Point.wav", Sound.class).play(soundVolume);
 				cactus1Passed = true;
 			}
 

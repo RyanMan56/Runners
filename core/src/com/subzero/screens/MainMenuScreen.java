@@ -27,6 +27,7 @@ import com.subzero.background.Mountains;
 import com.subzero.entities.Cloud;
 import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
+import com.subzero.services.IGoogleServices;
 
 public class MainMenuScreen implements Screen {
 	private AssetManager assetManager;
@@ -56,6 +57,8 @@ public class MainMenuScreen implements Screen {
 	private Rectangle restartBounds;
 	private Texture characterSelect;
 	private Rectangle characterSelectBounds;
+	private Texture leaderboards;
+	private Rectangle leaderboardsBounds;
 	private GameScreen gameScreen;
 	private CharacterSelectScreen characterSelectScreen;
 	private Runners game;
@@ -67,16 +70,27 @@ public class MainMenuScreen implements Screen {
 	private float soundVolume = 0.2f;
 	private Music music;
 	private boolean shouldPlay = true;
+	private IGoogleServices googleServices;
+	private boolean productsChecked = false;
 
-	public MainMenuScreen(Runners game, AssetManager assetManager) {
+	public MainMenuScreen(Runners game, AssetManager assetManager, IGoogleServices googleServices) {
 		this.game = game;
 		this.assetManager = assetManager;
+		this.googleServices = googleServices;
 		imageProvider = new ImageProvider();
 		pref = Gdx.app.getPreferences("com.subzero.runners");
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 		initCharacters();
-		gameScreen = new GameScreen(game, assetManager, this);
-		characterSelectScreen = new CharacterSelectScreen(game, assetManager, this, gameScreen);
+		if (!pref.getBoolean("MusicMuted", false)) {
+			pref.putBoolean("MusicMuted", false);
+			pref.flush();
+		}
+		if (!pref.getBoolean("SoundMuted", false)) {
+			pref.putBoolean("SoundMuted", false);
+			pref.flush();
+		}
+		gameScreen = new GameScreen(game, assetManager, this, googleServices);
+		characterSelectScreen = new CharacterSelectScreen(game, assetManager, this, gameScreen, googleServices);
 
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
@@ -90,12 +104,14 @@ public class MainMenuScreen implements Screen {
 		bigNikolaYDest = -20;
 		restart = assetManager.get("Restart.png", Texture.class);
 		restartX = 130;
-		restartY = 55;
+		restartY = 60;
 		restartWidth = restart.getWidth();
 		restartHeight = restart.getHeight();
 		restartBounds = new Rectangle(restartX, restartY, restartWidth, restartHeight);
 		characterSelect = assetManager.get("CharacterSelectButton.png", Texture.class);
 		characterSelectBounds = new Rectangle(restartX, restartY - 27, characterSelect.getWidth(), characterSelect.getHeight());
+		leaderboards = assetManager.get("Leaderboards.png", Texture.class);
+		leaderboardsBounds = new Rectangle(restartX, characterSelectBounds.y-27, leaderboards.getWidth(), leaderboards.getHeight());
 
 		clouds[0] = new Cloud(imageProvider.getScreenWidth(), imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
 		clouds[1] = new Cloud(imageProvider.getScreenWidth() * 1.5f, imageProvider.getScreenHeight() - 25 + rand.nextInt(20) - 10, 100, assetManager);
@@ -116,6 +132,8 @@ public class MainMenuScreen implements Screen {
 
 		music = assetManager.get("248117__zagi2__retro-gaming-loop.wav", Music.class);
 		music.setVolume(1);
+		
+		googleServices.signIn();
 	}
 
 	public void createDust() {
@@ -129,8 +147,13 @@ public class MainMenuScreen implements Screen {
 		defaultCharacter = pref.getString("defaultCharacter", "Nikola");
 		bigNikola = new TextureRegion(assetManager.get(defaultCharacter + ".png", Texture.class));
 		timePassed = 0;
-		if (shouldPlay)
+		if ((shouldPlay) && (!pref.getBoolean("MusicMuted")))
 			music.play();
+		
+		if(!productsChecked){
+			googleServices.queryPurchases(pref);
+			productsChecked = true;
+		}
 	}
 
 	@Override
@@ -204,16 +227,23 @@ public class MainMenuScreen implements Screen {
 				activeTime = 0;
 				if (Gdx.input.justTouched()) {
 					if (restartBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						if (!pref.getBoolean("SoundMuted"))
+							assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						shouldPlay = false;
 						music.pause();
 						game.setScreen(gameScreen);
 					}
 					if (characterSelectBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						if (!pref.getBoolean("SoundMuted"))
+							assetManager.get("Select.wav", Sound.class).play(soundVolume);
 						music.pause();
 						shouldPlay = false;
 						game.setScreen(characterSelectScreen);
+					}
+					if (leaderboardsBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						if (!pref.getBoolean("SoundMuted"))
+							assetManager.get("Select.wav", Sound.class).play(soundVolume);
+						leaderboardsPressed();
 					}
 				}
 			}
@@ -225,9 +255,10 @@ public class MainMenuScreen implements Screen {
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, 1);
 		batch.draw(bigNikola, imageProvider.getScreenWidth() / 20, bigNikolaY, bigNikolaWidth, bigNikolaHeight);
 		batch.setColor(batch.getColor().r, batch.getColor().g, batch.getColor().b, titleAlpha);
-		batch.draw(title, imageProvider.getScreenWidth() / 15, 90, titleWidth, titleHeight);
+		batch.draw(title, 1+imageProvider.getScreenWidth() / 15, 90, titleWidth, titleHeight);
 		batch.draw(restart, restartX, restartY, restartWidth, restartHeight);
 		batch.draw(characterSelect, characterSelectBounds.x, characterSelectBounds.y);
+		batch.draw(leaderboards, leaderboardsBounds.x, leaderboardsBounds.y);
 		batch.end();
 
 		Gdx.gl.glEnable(GL10.GL_BLEND);
@@ -238,6 +269,10 @@ public class MainMenuScreen implements Screen {
 		shapeRenderer.rect(0, 0, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
 		shapeRenderer.end();
 		Gdx.gl.glDisable(GL10.GL_BLEND);
+	}
+	
+	public void leaderboardsPressed(){
+		googleServices.showScores();
 	}
 
 	public void updateClouds() {
@@ -291,6 +326,10 @@ public class MainMenuScreen implements Screen {
 		initCharacter("Rob");
 		initCharacter("Xorp");
 		initCharacter("BattleCat");
+		initCharacter("Rootsworth");
+		initCharacter("Snap");
+		initCharacter("Abaddon");
+		initCharacter("Metatron");
 	}
 
 	private void initCharacter(String name) {

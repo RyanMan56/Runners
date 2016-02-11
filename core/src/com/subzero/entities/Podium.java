@@ -71,12 +71,20 @@ public class Podium {
 				value = assetManager.get("10.png", Texture.class);
 			if (nameText.equals("Ash"))
 				value = assetManager.get("20.png", Texture.class);
-			if(nameText.equalsIgnoreCase("Rob"))
+			if (nameText.equalsIgnoreCase("Rob"))
 				value = assetManager.get("30.png", Texture.class);
-			if(nameText.equalsIgnoreCase("Xorp"))
+			if (nameText.equalsIgnoreCase("BattleCat"))
 				value = assetManager.get("40.png", Texture.class);
-			if(nameText.equalsIgnoreCase("BattleCat"))
+			if (nameText.equalsIgnoreCase("Xorp"))
 				value = assetManager.get("50.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Rootsworth"))
+				value = assetManager.get("60.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Snap"))
+				value = assetManager.get("70.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Metatron"))
+				value = assetManager.get("80.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Abaddon"))
+				value = assetManager.get("90.png", Texture.class);
 			if (nameText.equals("ComingSoon")) {
 				name = assetManager.get("ComingSoonName.png", Texture.class);
 				description = assetManager.get("ComingSoonDesc.png", Texture.class);
@@ -88,8 +96,64 @@ public class Podium {
 		width = sprite.getWidth();
 		height = sprite.getHeight();
 	}
+	
+	public void setupCharacter(String characterName){
+		this.characterName = characterName;
+		backPodium = assetManager.get("PodiumBack.png", Texture.class);
+		frontPodium = assetManager.get("PodiumFront.png", Texture.class);
+		pref = Gdx.app.getPreferences("com.subzero.runners");
+		isUnlocked = pref.getBoolean(characterName, false);
+
+		if (characterName.equals("ComingSoon"))
+			isComingSoon = true;
+		character = assetManager.get(characterName + ".png", Texture.class);
+		nameText = characterName;
+		if (isUnlocked && (!isComingSoon)) {
+			lockDisplayed = false;
+			name = assetManager.get(characterName + "Name.png", Texture.class);
+			description = assetManager.get(characterName + "Desc.png", Texture.class);
+			textureRegion = new TextureRegion(assetManager.get(characterName + "-j.png", Texture.class));
+			animatedTextures = textureRegion.split(18, 22)[0];
+			animation = new Animation(period, animatedTextures);
+			animation.setPlayMode(PlayMode.LOOP);
+		}
+		if ((!isUnlocked) || isComingSoon) {
+			name = assetManager.get("LockedName.png", Texture.class);
+			description = assetManager.get("LockedDesc.png", Texture.class);
+			if (nameText.equals("Ryan"))
+				value = assetManager.get("10.png", Texture.class);
+			if (nameText.equals("Ash"))
+				value = assetManager.get("20.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Rob"))
+				value = assetManager.get("30.png", Texture.class);
+			if (nameText.equalsIgnoreCase("BattleCat"))
+				value = assetManager.get("40.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Xorp"))
+				value = assetManager.get("50.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Rootsworth"))
+				value = assetManager.get("60.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Snap"))
+				value = assetManager.get("70.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Metatron"))
+				value = assetManager.get("80.png", Texture.class);
+			if (nameText.equalsIgnoreCase("Abaddon"))
+				value = assetManager.get("90.png", Texture.class);
+			if (nameText.equals("ComingSoon")) {
+				name = assetManager.get("ComingSoonName.png", Texture.class);
+				description = assetManager.get("ComingSoonDesc.png", Texture.class);
+			}
+		}
+		
+		sprite = new Sprite(assetManager.get(characterName + ".png", Texture.class));
+		sprite.setScale(scale);
+		width = sprite.getWidth();
+		height = sprite.getHeight();
+	}
 
 	public void render(SpriteBatch batch) {
+		if((pref.getBoolean(nameText)) && (!isUnlocked))
+			setupCharacter(nameText);
+		
 		if (isUnlocked)
 			animation();
 
@@ -133,19 +197,20 @@ public class Podium {
 	}
 
 	public boolean checkSelecting(OrthographicCamera camera) {
-			if (!isComingSoon)
-				if (!selected)
-					if (Gdx.input.justTouched()) {
-						if (new Rectangle(x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale).contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-							selected = true;
-							animate = true;
+		if (!isComingSoon)
+			if (!selected)
+				if (Gdx.input.justTouched()) {
+					if (new Rectangle(x, y, frontPodium.getWidth() * scale, frontPodium.getHeight() * scale).contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
+						selected = true;
+						animate = true;
+						if (!pref.getBoolean("SoundMuted"))
 							assetManager.get("Select.wav", Sound.class).play(soundVolume);
-							return true;
-						}
+						return true;
 					}
+				}
 		return false;
 	}
-	
+
 	public void animation() {
 		if (animate) {
 			elapsedTime += Gdx.graphics.getDeltaTime();
@@ -160,6 +225,10 @@ public class Podium {
 		}
 	}
 
+	public void setUnlocked(boolean unlocked){
+		this.isUnlocked = unlocked;
+	}
+	
 	public void setAnimate(boolean animate) {
 		this.animate = animate;
 	}
@@ -188,10 +257,10 @@ public class Podium {
 		this.selected = selected;
 	}
 
-	public boolean isUnlocked(){
+	public boolean isUnlocked() {
 		return isUnlocked;
 	}
-	
+
 	public boolean isSelected() {
 		return selected;
 	}
@@ -215,5 +284,4 @@ public class Podium {
 	public float getHeight() {
 		return height;
 	}
-
 }

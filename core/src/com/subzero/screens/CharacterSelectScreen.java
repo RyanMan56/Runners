@@ -25,6 +25,7 @@ import com.subzero.entities.Cloud;
 import com.subzero.entities.Podium;
 import com.subzero.images.ImageProvider;
 import com.subzero.runners.Runners;
+import com.subzero.services.IGoogleServices;
 
 public class CharacterSelectScreen implements Screen {
 	private AssetManager assetManager;
@@ -41,7 +42,6 @@ public class CharacterSelectScreen implements Screen {
 	private Random rand;
 	private Cloud[] clouds = new Cloud[2];
 	private Texture characterSelectText;
-	private Podium nikolaPodium, ryanPodium, p1, p2, p3;
 	private ArrayList<Podium> podiums = new ArrayList<Podium>();
 	private Preferences pref;
 	private String defaultCharacter;
@@ -56,12 +56,14 @@ public class CharacterSelectScreen implements Screen {
 	private float velocity, gravity = 0.9f, displacement;
 	private Music music;
 	private boolean locked = false;
+	private IGoogleServices googleServices;
 
-	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen, Screen gameScreen) {
+	public CharacterSelectScreen(Runners game, AssetManager assetManager, Screen screen, Screen gameScreen, IGoogleServices googleServices) {
 		this.game = game;
 		this.assetManager = assetManager;
 		this.oldScreen = screen;
 		this.gameScreen = gameScreen;
+		this.googleServices = googleServices;
 		imageProvider = new ImageProvider();
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, imageProvider.getScreenWidth(), imageProvider.getScreenHeight());
@@ -85,8 +87,12 @@ public class CharacterSelectScreen implements Screen {
 		podiums.add(new Podium("Ryan", assetManager));
 		podiums.add(new Podium("Ash", assetManager));
 		podiums.add(new Podium("Rob", assetManager));
-		podiums.add(new Podium("Xorp", assetManager));
 		podiums.add(new Podium("BattleCat", assetManager));
+		podiums.add(new Podium("Xorp", assetManager));
+		podiums.add(new Podium("Rootsworth", assetManager));
+		podiums.add(new Podium("Snap", assetManager));
+		podiums.add(new Podium("Metatron", assetManager));
+		podiums.add(new Podium("Abaddon", assetManager));
 		podiums.add(new Podium("ComingSoon", assetManager));
 		podiums.get(0).setSelected(true);
 		pref = Gdx.app.getPreferences("com.subzero.runners");
@@ -104,7 +110,8 @@ public class CharacterSelectScreen implements Screen {
 		timePassed = 0;
 		for (Podium podium : podiums)
 			podium.checkPrefs();
-		music.play();
+		if (!pref.getBoolean("MusicMuted"))
+			music.play();
 		for (Podium podium : podiums) {
 			if (podium.getName().equals(pref.getString("defaultCharacter", "Nikola")))
 				setOnlySelected(defaultCharacter);
@@ -144,19 +151,20 @@ public class CharacterSelectScreen implements Screen {
 		if (timePassed > activeTime) {
 			if (Gdx.input.justTouched()) {
 				if (backButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-					assetManager.get("Select.wav", Sound.class).play(soundVolume);
+					if (!pref.getBoolean("SoundMuted"))
+						assetManager.get("Select.wav", Sound.class).play(soundVolume);
 					music.pause();
 					game.setScreen(oldScreen);
 				}
 				if (playButtonBounds.contains(camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).x, camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0)).y)) {
-					assetManager.get("Select.wav", Sound.class).play(soundVolume);
-					for(Podium podium : podiums)
-						if(podium.isSelected())
-							if(podium.isUnlocked()){
+					if (!pref.getBoolean("SoundMuted"))
+						assetManager.get("Select.wav", Sound.class).play(soundVolume);
+					for (Podium podium : podiums)
+						if (podium.isSelected())
+							if (podium.isUnlocked()) {
 								game.setScreen(gameScreen);
 								music.pause();
-							}
-							else
+							} else
 								purchase(podium);
 				}
 			}
@@ -204,7 +212,7 @@ public class CharacterSelectScreen implements Screen {
 	/**
 	 * Makes sure that this is the only selected Podium, deselects all others
 	 * and makes this the default character
-	 *  
+	 * 
 	 * @param name
 	 *            The name of the selected character's Podium
 	 */
@@ -228,9 +236,33 @@ public class CharacterSelectScreen implements Screen {
 		} else
 			playButton = assetManager.get("ShopButton.png", Texture.class);
 	}
-	
-	public void purchase(Podium podium){
-		// TODO Purchasing stuff here
+
+	public void purchase(Podium podium) {
+		String name = null;
+		if(podium.getName().equals("Ryan"))
+			name = "ryan";
+		else if(podium.getName().equals("Ash"))
+			name = "ash";
+		else if(podium.getName().equals("Rob"))
+			name = "rob";
+		else if(podium.getName().equals("BattleCat"))
+			name = "battle_cat";
+		else if(podium.getName().equals("Xorp"))
+			name = "xorp";
+		else if(podium.getName().equals("Rootsworth"))
+			name = "rootsworth";
+		else if(podium.getName().equals("Snap"))
+			name = "snap";
+		else if(podium.getName().equals("Metatron"))
+			name = "metatron";
+		else if(podium.getName().equals("Abaddon"))
+			name = "abaddon";
+		
+		googleServices.makePurchase(name, pref);
+		for(int i = 0; i < podiums.size(); i++){
+//			if(podiums.get(i).getName().equals(podium.getName()))
+//				podiums.get(i).setupCharacter(podium.getName());
+		}
 	}
 
 	public void createDust() {
