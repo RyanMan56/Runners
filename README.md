@@ -17,4 +17,4 @@ Runners is developing using the [LibGDX API](https://libgdx.badlogicgames.com/) 
 Runners is licensed under the GNU Lesser General Public License as defined [here](http://www.gnu.org/licenses/gpl.txt) and [here](http://www.gnu.org/licenses/lgpl.txt), meaning you can use and integrate software released under the LGPL into your own (even proprietary) software without being required by the terms of a strong copyleft license to release the source code of your own components.
 
 # Contact
-For any queries or support contact me at [RyanMan56@Gmail.com](RyanMan56@Gmail.com)
+For any queries or support contact me at RyanMan56@Gmail.com
