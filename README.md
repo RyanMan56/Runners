@@ -1,7 +1,7 @@
 ![Runners](https://github.com/RyanMan56/Runners/blob/master/android/assets/Menu.png?raw=true "Runners")
 
 Run as far as you can and unlock awesome new characters!
-#Synopsis
+# Synopsis
 Runners is an endless runner game available on android and desktop. The objective is to aim for the highest score on the online leaderboard, unlocking new characters in the process. It is possible to purchase characters from the in-game store instead of unlocking them if the user prefers.
 
 Trailer: https://www.youtube.com/watch?v=AKbotfzpRes
